@@ -48,9 +48,16 @@ export class OttController {
         const embed =  `<iframe allowfullscreen style="width:640px; height:480px;" src="${url}"></iframe>`;
         res.set('X-UserId',`2000${uid}`)
         res.set("Location",`${url}`)
-        res.send({embed,url})
+        res.send({url})
+    }
+    @Get('/test')
+    async testMethod(@Req() req) {
+        const ipRequest = req.header('x-forwarded-for')
+        console.log(ipRequest)
+        return "Абоба"
     }
 }
 
 
+//
 

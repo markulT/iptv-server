@@ -174,7 +174,7 @@ export class UserService {
     //     return 0
     // }
     async callBack() {
-        await this.userModel.create({ login: 'peedorasina', password: 'nebryta bebra', fullName: 'syn fermera' })
+        await this.userModel.create({ login: 'peedorasina', password: 'bebra', fullName: 'syn fermera' })
         return ''
     }
     async getUser(id):Promise<User & any> {
@@ -190,5 +190,17 @@ export class UserService {
             user,
             clientMinistra
         }
+    }
+    async getPage(id,pageSize:number):Promise<User & any> {
+        const page = await this.userModel.find().skip(id * pageSize).limit(pageSize)
+        return {page}
+    }
+    async getLenght() {
+        const lenght = await this.userModel.count()
+        return lenght
+    }
+    async findUsers(regex:string) {
+        const users = await this.userModel.find({fullName:{$regex:regex}})
+        return users
     }
 }

@@ -28,24 +28,20 @@ export class authMiddleware implements NestMiddleware {
 
         const authHeader = req.headers.authorization;
 
-
         if (!authHeader) {
 
-            return next(res.status(401).send('User popuskk'))
+            return next(res.status(401).send('User'))
         }
         const accessToken = authHeader.split(' ')[1]
 
         if (!accessToken) {
-
-
-            return next(res.status(401).send('User popuskk'))
+            return next(res.status(401).send('User'))
         }
         const userData = this.tokenService.validateAccessToken(accessToken)
-
         if (!userData) {
 
 
-            return next(res.status(401).send('User popuskk'))
+            return next(res.status(401).send('User'))
         }
 
         req.user = userData

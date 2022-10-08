@@ -8,7 +8,7 @@ import {
     Param,
     Patch,
     Post,
-    Put,
+    Put, Query,
     Req,
     Res
 } from "@nestjs/common";
@@ -99,11 +99,9 @@ export class AdminController {
             adminData
         }
     }
-    @Get('/getUsers')
+    @Get('/getUsers/')
     async getUsers(@Req() req) {
         const adminAuth = req.user
-        console.log(adminAuth)
-        console.log('ANCHOR')
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
@@ -112,6 +110,25 @@ export class AdminController {
         const users = await this.userService.getUsers()
         return {
             users
+        }
+    }
+
+    @Get('/getPage')
+    async getPage(@Req() req, @Param() param, @Query() reqParam) {
+        const adminAuth = req.user
+        console.log(adminAuth)
+        const pageId = reqParam.pageId
+        const pageSize = reqParam.pageSize
+        console.log(`${pageId} - ${pageSize}`)
+        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        const page = await this.userService.getPage(pageId, pageSize)
+        const lenght = await this.userService.getLenght()
+        return {
+            lenght, page
         }
     }
 
@@ -130,7 +147,6 @@ export class AdminController {
 
     @Delete('/deleteClient/:id')
     async deleteClient(@Param() param, @Req() req) {
-        console.log('yopta')
         const adminAuth = req.user
         const userId = param.id
         const admin = await this.adminService.getAdmin(adminAuth.login)
@@ -140,6 +156,23 @@ export class AdminController {
         }
         const status = await this.adminService.deleteClient(userId)
         return 'Successfully deleted'
+    }
+
+    @Get('/findClient/')
+    async findClient(@Query() reqParam,@Req() req,@Res({passthrough:true}) res){
+        const pageId = reqParam.pageId
+        const pageSize = reqParam.pageSize
+        const regex = reqParam.regex
+        const adminAuth = req.user
+        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        const users = await this.userService.findUsers(regex)
+        console.log(users)
+        return {users}
+
     }
 
 }

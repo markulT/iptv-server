@@ -50,12 +50,6 @@ export class OttController {
         res.set("Location",`${url}`)
         res.send({url})
     }
-    @Get('/test')
-    async testMethod(@Req() req) {
-        const ipRequest = req.header('x-forwarded-for')
-        console.log(ipRequest)
-        return "Абоба"
-    }
 }
 
 

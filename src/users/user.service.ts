@@ -11,8 +11,21 @@ import * as bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
 import axios from 'axios';
 import {MailService} from "../mail/mail.service";
+import {type} from "os";
 
+type $FixMe = any
 
+export type loginData = {
+    accessToken:string,
+    refreshToken:string
+    user:typeof UserDto,
+    fullProfile:$FixMe
+}
+
+export type findUserType = {
+    user:User,
+    clientMinistra:string
+}
 
 @Injectable()
 export class UserService {
@@ -27,7 +40,7 @@ export class UserService {
         return 'Hola comosta'
     }
 
-    async registration(login: string, password: string, fullName: string, email:string, phone:string, address:string) {
+    async registration(login: string, password: string, fullName: string, email:string, phone:string, address:string):Promise<loginData> {
 
         // check if user exists
         const candidate = await this.userModel.findOne({ login })
@@ -63,11 +76,13 @@ export class UserService {
 
         return {
             ...tokens,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             user: userDto
         }
     }
 
-    async login(login, password) {
+    async login(login, password):Promise<loginData> {
         const user = await this.userModel.findOne({ login })
         if (!user) {
             throw new Error('User does not exist')
@@ -89,9 +104,11 @@ export class UserService {
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
 
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log('saved token');
+
         return {
             ...tokens,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             user: userDto,
             fullProfile: jsonUserMinistra
         }
@@ -124,24 +141,26 @@ export class UserService {
 
     async refresh(refreshToken) {
         if (!refreshToken) {
-            throw new Error('Всьо хуйня міша, давай па новай')
+            throw new HttpException('No refresh token', HttpStatus.UNAUTHORIZED)
         }
         const userData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
-        console.log(userData);
-
-        console.log(tokenFromDb);
 
         if (!userData || !tokenFromDb) {
-            throw new Error("Unauthorized user");
+            throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
         }
-        const user = await this.userModel.findById(tokenFromDb.user)
+
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const user = await this.userModel.findById(userData.id)
 
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
 
+
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log('saved token');
+        console.log(userDto)
         return {
             ...tokens,
             user: userDto
@@ -174,10 +193,10 @@ export class UserService {
     //     return 0
     // }
     async callBack() {
-        await this.userModel.create({ login: 'peedorasina', password: 'bebra', fullName: 'syn fermera' })
+        await this.userModel.create({ login: '1', password: '2', fullName: '3' })
         return ''
     }
-    async getUser(id):Promise<User & any> {
+    async getUser(id):Promise<findUserType> {
         const user = await this.userModel.findById(id)
         const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`, {
             method: "GET",
@@ -191,16 +210,36 @@ export class UserService {
             clientMinistra
         }
     }
-    async getPage(id,pageSize:number):Promise<User & any> {
-        const page = await this.userModel.find().skip(id * pageSize).limit(pageSize)
-        return {page}
+    async getPage(id,pageSize:number):Promise<Array<User>> {
+        console.log(`pageId is ${id}`)
+        if (id==1) {
+            return await this.userModel.find().limit(pageSize)
+        }
+        const page = await this.userModel.find().skip((id-1) * pageSize).limit(pageSize)
+        return page
     }
     async getLenght() {
         const lenght = await this.userModel.count()
         return lenght
     }
-    async findUsers(regex:string) {
+    async findUsers(regex:string):Promise<Array<User>> {
         const users = await this.userModel.find({fullName:{$regex:regex}})
         return users
+    }
+    async getProfile(userData) {
+        const user = await this.userModel.findOne({login:userData.login})
+
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`, {
+            method: "GET",
+            headers: {
+                Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'
+            }
+        })
+
+        const jsonUserMinistra = JSON.stringify(userMinistra?.data)
+
+        return {
+            fullProfile:jsonUserMinistra
+        }
     }
 }

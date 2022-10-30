@@ -2,6 +2,9 @@ import { Injectable, NestMiddleware } from "@nestjs/common";
 // import ApiError from "src/exceptions/api-error";
 import { TokenService } from "src/token/token.service";
 import {log} from "util";
+import {InjectModel} from "@nestjs/mongoose";
+import {User, UserDocument} from "../users/user.schema";
+import {Model} from "mongoose";
 
 // export function authMiddleware(req, res, next) {
 //     try {
@@ -20,29 +23,35 @@ import {log} from "util";
 @Injectable()
 export class authMiddleware implements NestMiddleware {
     constructor(
-        private tokenService: TokenService
+        private tokenService: TokenService,
+        @InjectModel(User.name) private readonly userModel:Model<UserDocument>
     ) {
 
     }
-    use(req: any, res: any, next: (error?: any) => void) {
+    async use(req: any, res: any, next: (error?: any) => void) {
 
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-
             return next(res.status(401).send('User'))
         }
         const accessToken = authHeader.split(' ')[1]
-
+        // console.log('1728568y123578612387561283568793126587123657896123987568273659812639856837125')
+        // console.log(accessToken)
+        // console.log('1728568y123578612387561283568793126587123657896123987568273659812639856837125')
         if (!accessToken) {
+
             return next(res.status(401).send('User'))
         }
         const userData = this.tokenService.validateAccessToken(accessToken)
         if (!userData) {
-
-
+            console.log('ERROR')
             return next(res.status(401).send('User'))
         }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const user = await this.userModel.findOne({login:userData.login})
+        console.log(user)
 
         req.user = userData
         next()

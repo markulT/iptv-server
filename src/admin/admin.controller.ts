@@ -73,8 +73,8 @@ export class AdminController {
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Delete, User)
-        console.log(`NIGGA - ${isAllowed ? 'is allowed to' : 'is not allowed to!!'}`)
-        if(!isAllowed) {throw new HttpException('А хуй тобі. Підріла йобана. Ахуєла дані пиздити ?', HttpStatus.FORBIDDEN)}
+        console.log(`${isAllowed ? 'is allowed to' : 'is not allowed to!!'}`)
+        if(!isAllowed) {throw new HttpException("FORBIDDEN", HttpStatus.FORBIDDEN)}
 
         const login = body.login
         const password = body.password
@@ -90,11 +90,13 @@ export class AdminController {
         }
     }
 
-    @Get('/refresh')
-    async refresh(@Req() req, @Res() res:Response) {
+    @Post('/refresh')
+    async refresh(@Req() req, @Res({passthrough:true}) res) {
         const {refreshToken} = req.cookies
+
         const adminData = await this.adminService.refresh(refreshToken)
         res.cookie('refreshToken', adminData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+
         return {
             adminData
         }
@@ -116,7 +118,6 @@ export class AdminController {
     @Get('/getPage')
     async getPage(@Req() req, @Param() param, @Query() reqParam) {
         const adminAuth = req.user
-        console.log(adminAuth)
         const pageId = reqParam.pageId
         const pageSize = reqParam.pageSize
         console.log(`${pageId} - ${pageSize}`)
@@ -126,6 +127,7 @@ export class AdminController {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
         const page = await this.userService.getPage(pageId, pageSize)
+        console.log(page)
         const lenght = await this.userService.getLenght()
         return {
             lenght, page
@@ -170,9 +172,21 @@ export class AdminController {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
         const users = await this.userService.findUsers(regex)
-        console.log(users)
+        console.log(users, 'finded users')
         return {users}
+    }
 
+    @Delete('/cancelMobileSub/:id')
+    async cancelMobileSub(@Param() param, @Req() req) {
+        const adminAuth = req.user
+        const id:string = param.id
+        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Delete, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        const result = this.adminService.cancelSub(id)
+        return result
     }
 
 }

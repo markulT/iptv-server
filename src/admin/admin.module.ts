@@ -13,6 +13,7 @@ import {UserService} from "../users/user.service";
 import {User, UserSchema} from "../users/user.schema";
 import {JwtService} from "@nestjs/jwt";
 import {MailService} from "../mail/mail.service";
+import {PayService} from "../payments/pay.service";
 
 
 @Module({
@@ -24,7 +25,7 @@ import {MailService} from "../mail/mail.service";
         CaslModule
     ],
     controllers:[AdminController],
-    providers:[AdminService, TokenService, ConfigService, UserService, JwtService, MailService]
+    providers:[AdminService, TokenService, ConfigService, UserService, JwtService, MailService, PayService]
 })
 export class AdminModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
@@ -33,6 +34,7 @@ export class AdminModule implements NestModule {
             .exclude(
                 {path:'/admin/login',method:RequestMethod.ALL},
                 {path:'/admin/register',method:RequestMethod.ALL},
+                {path:'/admin/refresh',method:RequestMethod.ALL},
 
             )
             .forRoutes(AdminController)

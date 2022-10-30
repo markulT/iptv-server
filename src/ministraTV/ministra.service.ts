@@ -14,8 +14,11 @@ export class MinistraService {
     ) {
     }
 
-    async changeMacAddesss(body) {
-        const login = body.login
+    async changeMacAddesss(body, userLogin) {
+
+
+
+        const login = userLogin
 
         const newMacAddress = body.newMac
         console.log(newMacAddress)
@@ -31,8 +34,7 @@ export class MinistraService {
 
         const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
         const requestStatus = userExists.data.status
-        console.log(requestStatus)
-        console.log(userExists.data)
+
 
         console.log("Adding user to MinistraTV database...")
         if (requestStatus == "ERROR") {

@@ -4,9 +4,10 @@ import { UserDto } from './../dtos/user-dto';
 import { UserService } from './user.service';
 import { Body, Controller, Get, Param, Post, Req, Request, Res } from "@nestjs/common";
 import ApiError from '../exceptions/api-error'
-
-
-
+import {loginData} from "./user.service";
+interface responseAuth {
+    userData:loginData
+}
 @Controller('/api')
 export class UserController {
     constructor(
@@ -18,7 +19,7 @@ export class UserController {
         return this.userService.test()
     }
     @Post('/registration')
-    async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response) {
+    async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response):Promise<responseAuth> {
         try {
             // getting user data
             const login = createUserDto.login
@@ -45,16 +46,14 @@ export class UserController {
 
     }
     @Post('/login')
-    async login(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) res) {
+    async login(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) res):Promise<responseAuth> {
 
 
         // getting request`s body data
         const login = createUserDto.login
         const password = createUserDto.password
 
-        console.log(`Login ${login} and ${password}`);
         const userData = await this.userService.login(login, password)
-        console.log(`${userData.refreshToken} - fuck bliat cookie file`)
         res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
 
         return {
@@ -70,17 +69,16 @@ export class UserController {
     }
 
     @Get('/refresh')
-    async refresh(@Req() req, @Res() res) {
-
+    async refresh(@Req() req, @Res({passthrough:true}) res) {
         const { refreshToken } = req.cookies
-        console.log(refreshToken);
 
         const userData = await this.userService.refresh(refreshToken)
-        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
-        console.log('responding');
-        console.log(userData);
 
-        res.send(userData)
+        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+
+        return {
+            userData
+        }
     }
 
     @Get('/users')
@@ -116,7 +114,16 @@ export class UserController {
     async subscription(@Body() body) {
         await this.userService.callBack()
         console.log(body);
-        return 'PEZDA'
+        return ''
+    }
+    @Get('/getFullProfile')
+    async getFullProfile(@Req() req) {
+        const userData = req.user
+        console.log(userData, 'nigga')
+        const fullProfile = await this.userService.getProfile(userData)
+        return {
+            fullProfile
+        }
     }
 }
 

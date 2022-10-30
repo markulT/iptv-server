@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Inject, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {TokenService} from "../token/token.service";
 import {InjectModel} from "@nestjs/mongoose";
 import {Admin, AdminDocument} from "./admin.schema";
@@ -6,12 +6,11 @@ import {Model} from "mongoose";
 import {RoleEnum} from "./role.enum";
 import * as bcrypt from 'bcrypt'
 import {AdminDto} from "./admin.dto";
-import {UserDto} from "../dtos/user-dto";
-import axios from "axios";
 import {UserService} from "../users/user.service";
 import {User, UserDocument} from "../users/user.schema";
 import * as uuid from 'uuid'
 import {MailService} from "../mail/mail.service";
+import {PayService} from "../payments/pay.service";
 
 type ErrorResponse = {
     status:number,
@@ -30,8 +29,8 @@ export class AdminService {
         @InjectModel(Admin.name) private readonly adminModel:Model<AdminDocument>,
         private tokenService:TokenService,
         private userService:UserService,
-        private mailService:MailService
-
+        private mailService:MailService,
+        private payService:PayService
     ) {
     }
     test():string {
@@ -72,25 +71,29 @@ export class AdminService {
         }
     }
     async getAdmin(login) {
-        const admin = await this.adminModel.findOne({login})
-        return admin
+        return await this.adminModel.findOne({login})
     }
     async refresh(refreshToken):Promise<SuccessResponse> {
+
+
         if(!refreshToken) {
             throw new HttpException('Not authorized', HttpStatus.UNAUTHORIZED)
         }
         const adminData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
-        console.log(tokenFromDb)
         if(!adminData || !tokenFromDb) {
+            console.log('negor')
             throw new HttpException('Not authorized', HttpStatus.UNAUTHORIZED)
         }
         const admin = await this.adminModel.findById(tokenFromDb.user)
         const adminDto = new AdminDto(admin)
-        const tokens = await this.tokenService.generateToken({...adminDto})
+        const tokens = this.tokenService.generateToken({...adminDto})
 
         await this.tokenService.saveToken(adminDto.id, tokens.refreshToken)
-
+        console.log({
+            ...tokens,
+            admin:adminDto
+        })
         return {
             ...tokens,
             admin:adminDto
@@ -125,7 +128,15 @@ export class AdminService {
     async deleteClient(id) {
         await this.userModel.findByIdAndDelete(id)
     }
-    async getByToken() {
 
+    async cancelSub(id:string) {
+        const user = await this.userModel.findById(id)
+        const isUserSubbed = await this.payService.isUserSubed(user.login, 'mobileSubOrderId')
+        console.log(isUserSubbed)
+        if (typeof isUserSubbed == 'string') {
+            const result = await this.payService.cancelMobileSub({login:user.login, password:user.password,orderId:user.mobileSubOrderId}, false)
+            return result
+        }
+        return 'йди нахуй'
     }
 }

@@ -17,6 +17,9 @@ export class User {
     @Prop({default:""})
     orderId:string
 
+    @Prop()
+    tvSubLevel:number
+
     @Prop({default:''})
     acqId:string
 
@@ -41,6 +44,14 @@ export class User {
     @Prop({default:''})
     dealer:string
 
+    @Prop({default:''})
+    mobileSubOrderId:string
+
+    @Prop({default:false})
+    mobileSubExists:boolean
+
+    @Prop({default:1})
+    mobileSubLevel:number
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

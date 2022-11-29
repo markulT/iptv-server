@@ -1,5 +1,5 @@
 import { errorMiddleware } from './middlewares/error-middleware';
-import { MiddlewareConsumer, NestModule } from '@nestjs/common';
+import {HttpException, MiddlewareConsumer, NestModule} from '@nestjs/common';
 import { UserModule } from './users/user.module';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -13,6 +13,8 @@ import {AdminModule} from "./admin/admin.module";
 import { CaslModule } from './casl/casl.module';
 import { KalturaModule } from './kaltura/kaltura.module';
 import { OttModule } from './ott/ott.module';
+import {RavenInterceptor, RavenModule} from "nest-raven";
+import {APP_INTERCEPTOR} from "@nestjs/core";
 
 @Module({
   imports: [
@@ -25,10 +27,14 @@ import { OttModule } from './ott/ott.module';
     AdminModule,
     CaslModule,
     KalturaModule,
-    OttModule
+    OttModule,
+    RavenModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,{
+    provide: APP_INTERCEPTOR,
+    useValue: new RavenInterceptor()
+  }],
 })
 export class AppModule { }
 // DEIQqBc7zPSiWqVp

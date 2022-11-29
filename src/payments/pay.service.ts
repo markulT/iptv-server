@@ -58,18 +58,14 @@ export class PayService {
         if (!user) {
             throw new Error('User does not exist')
         }
-        console.log('Checking passwords')
         const isPassEquals = await bcrypt.compare(password, user.password)
         if (!isPassEquals) {
             throw new Error('Incorrect password')
         }
-        console.log('Курва тарифний план')
-        console.log(tariffPlan)
 
         const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
         const requestStatus = userExists.data.status
-
-        console.log("Adding user to MinistraTV database...")
+        const date = new Date().toLocaleDateString('ru')
         if (requestStatus == "ERROR") {
             // result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`,{
             //     login:`${login}`,
@@ -83,6 +79,7 @@ export class PayService {
             user.orderId = orderId
             user.acqId = acqId
             user.tvSubLevel = tariffPlan
+            user.ministraDate = date
             await user.save()
         }
         return result
@@ -123,11 +120,11 @@ export class PayService {
     }
 
     async createSubMobile({login, password, orderId}) {
-        console.log('nigga niggga!&*@@$($SYUAIHDJAIKHGFHAJKSFG!*&^#*&!@T$G*@6873687453127645762')
+
         const user = await this.userModel.findOne({login})
 
         const arePassEqual = await bcrypt.compare(password, user.password)
-        console.log(login, password, orderId, 'якась параша')
+
         if (!user) {
             throw new HttpException('User does not exist', HttpStatus.NOT_FOUND)
         }
@@ -135,9 +132,10 @@ export class PayService {
         if (!arePassEqual) {
             throw new HttpException('Incorrect password', HttpStatus.FORBIDDEN)
         }
-
+        const date = new Date().toLocaleDateString('ru')
         user.mobileSubOrderId = orderId
         user.mobileSubExists = true
+        user.mobileDate = date
         await user.save()
         return 'Success'
     }

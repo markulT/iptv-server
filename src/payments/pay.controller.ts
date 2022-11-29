@@ -68,7 +68,7 @@ export class PayController {
         const isUserSubed = await this.payService.isUserSubed(userData.login, 'orderId')
         const isUserMobileSubed = await this.payService.isUserSubed(userData.login, 'mobileSubOrderId')
         const user = await this.payService.getUser(userData.login)
-
+        const date = new Date().toLocaleDateString('ru')
         switch (paymentData.action) {
             case 'subscribe':
                 if (paymentData.status == 'subscribed') {
@@ -82,7 +82,7 @@ export class PayController {
                                 password: body.password,
                                 tariffPlan: 1,
                                 orderId: paymentData.order_id,
-                                acqId: paymentData.acq_id
+                                acqId: paymentData.acq_id,
                             })
 
                         case 10:
@@ -94,10 +94,9 @@ export class PayController {
                                 password: body.password,
                                 tariffPlan: 2,
                                 orderId: paymentData.order_id,
-                                acqId: paymentData.acq_id
+                                acqId: paymentData.acq_id,
                             })
                         case 15:
-                            console.log('6666666666666666666666666666666666')
                             if(typeof isUserMobileSubed == 'string') {
                                 await this.payService.cancelMobileSub({login:userData.login, password:user.password,orderId:user.mobileSubOrderId })
                             }
@@ -108,7 +107,7 @@ export class PayController {
                             })
                     }
                 }
-                console.log(result)
+
                 return result
             default:
                 throw new HttpException('INTERNAL SERVER ERROR', HttpStatus.INTERNAL_SERVER_ERROR)

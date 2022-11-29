@@ -49,7 +49,7 @@ export class UserService {
         }
 
         const uniqueEmail = await this.userModel.findOne({email})
-        console.log(uniqueEmail)
+
         if(uniqueEmail?.isActivated) {
             throw new Error(`User with email ${email} already exists`)
         }
@@ -57,7 +57,8 @@ export class UserService {
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
-        const user = await this.userModel.create({ login, password: hash, fullName, activationLink, phone, address, email })
+        const date = new Date().toLocaleDateString('ru')
+        const user = await this.userModel.create({ login, password: hash, fullName, activationLink, phone, address, email, signDate:date })
 
         // create and save jwts
         const userDto = new UserDto(user);

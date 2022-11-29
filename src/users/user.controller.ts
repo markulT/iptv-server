@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { createUserDto } from './../dtos/create-user.dto';
 import { UserDto } from './../dtos/user-dto';
 import { UserService } from './user.service';
-import { Body, Controller, Get, Param, Post, Req, Request, Res } from "@nestjs/common";
+import {Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, Request, Res} from "@nestjs/common";
 import ApiError from '../exceptions/api-error'
 import {loginData} from "./user.service";
 interface responseAuth {
@@ -28,12 +28,10 @@ export class UserController {
             const email = createUserDto.email
             const phone = createUserDto.phone
             const address = createUserDto.address
-            console.log(`create ${login} and ${password} name ${fullName}`);
 
 
             const userData = await this.userService.registration(login, password, fullName, email, phone, address)
-            console.log(userData)
-            response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+            response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
             return {
                 userData
             }
@@ -52,9 +50,10 @@ export class UserController {
         // getting request`s body data
         const login = createUserDto.login
         const password = createUserDto.password
-
+        console.log(createUserDto)
         const userData = await this.userService.login(login, password)
-        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
+        // res.setHeader('Set-Cookie', `refreshToken=${userData.refreshToken}; HttpOnly; SameSite=None ; Secure ; Max-Age=${30 * 24 * 60 * 60 * 1000}; Path=/`)
 
         return {
             userData
@@ -74,7 +73,7 @@ export class UserController {
 
         const userData = await this.userService.refresh(refreshToken)
 
-        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+        res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
 
         return {
             userData
@@ -113,13 +112,11 @@ export class UserController {
     @Post('/callback')
     async subscription(@Body() body) {
         await this.userService.callBack()
-        console.log(body);
         return ''
     }
     @Get('/getFullProfile')
     async getFullProfile(@Req() req) {
         const userData = req.user
-        console.log(userData, 'nigga')
         const fullProfile = await this.userService.getProfile(userData)
         return {
             fullProfile

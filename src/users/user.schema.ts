@@ -52,6 +52,15 @@ export class User {
 
     @Prop({default:1})
     mobileSubLevel:number
+
+    @Prop()
+    ministraDate:string
+
+    @Prop()
+    mobileDate:string
+
+    @Prop({default:"Неизвестно"})
+    signDate:string
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

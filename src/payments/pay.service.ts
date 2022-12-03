@@ -136,6 +136,7 @@ export class PayService {
         user.mobileSubOrderId = orderId
         user.mobileSubExists = true
         user.mobileDate = date
+        user.mobileSubLevel = 1
         await user.save()
         return 'Success'
     }
@@ -155,7 +156,7 @@ export class PayService {
         }
 
         if (!user.mobileSubOrderId) {
-            throw new HttpException({message: 'В тебе взагалі нема підписки, типу що ти в біса очікував отримати ?'}, HttpStatus.SERVICE_UNAVAILABLE)
+            throw new HttpException({message: 'Not subbed ?'}, HttpStatus.SERVICE_UNAVAILABLE)
         }
         user.mobileSubOrderId = ''
         user.mobileSubExists = false

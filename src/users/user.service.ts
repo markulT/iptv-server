@@ -90,7 +90,7 @@ export class UserService {
         }
         const isPassEquals = await bcrypt.compare(password, user.password)
         if (!isPassEquals) {
-            throw new Error('Incorrect password')
+            throw new HttpException('Wrong password', HttpStatus.EXPECTATION_FAILED)
         }
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
@@ -115,9 +115,8 @@ export class UserService {
         }
     }
 
-    async logout(request) {
+    async logout(refreshToken) {
         try {
-            const { refreshToken } = request.cookies
             const token = await this.tokenService.removeToken(refreshToken)
             return token
         } catch (error) {

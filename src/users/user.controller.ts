@@ -50,7 +50,6 @@ export class UserController {
         // getting request`s body data
         const login = createUserDto.login
         const password = createUserDto.password
-        console.log(createUserDto)
         const userData = await this.userService.login(login, password)
         res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
         // res.setHeader('Set-Cookie', `refreshToken=${userData.refreshToken}; HttpOnly; SameSite=None ; Secure ; Max-Age=${30 * 24 * 60 * 60 * 1000}; Path=/`)
@@ -61,14 +60,18 @@ export class UserController {
 
     }
     @Post('/logout')
-    async logout(@Req() req: Request, @Res() res) {
-        const token = await this.userService.logout(req)
+    async logout(@Req() req: Request, @Res({passthrough:true}) res) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const { refreshToken } = req.cookies
+        const token = await this.userService.logout(refreshToken)
         res.clearCookie('refreshToken')
         return { token }
     }
 
     @Get('/refresh')
     async refresh(@Req() req, @Res({passthrough:true}) res) {
+
         const { refreshToken } = req.cookies
 
         const userData = await this.userService.refresh(refreshToken)

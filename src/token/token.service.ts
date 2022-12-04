@@ -53,7 +53,6 @@ export class TokenService {
     validateAccessToken(accessToken) {
         try {
             const userData = jwt.verify(accessToken, this.configService.get('JWT_ACCESS_SECRET'))
-            console.log(userData);
 
             return userData
         } catch (error) {
@@ -62,8 +61,6 @@ export class TokenService {
     }
 
     async findToken(refreshToken) {
-        console.log('finding token')
-        console.log(refreshToken)
         const userData = await this.tokenModel.findOne({refreshToken:refreshToken})
         return userData
     }

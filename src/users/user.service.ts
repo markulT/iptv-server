@@ -160,7 +160,6 @@ export class UserService {
 
 
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log(userDto)
         return {
             ...tokens,
             user: userDto
@@ -211,7 +210,6 @@ export class UserService {
         }
     }
     async getPage(id,pageSize:number):Promise<Array<User>> {
-        console.log(`pageId is ${id}`)
         if (id==1) {
             return await this.userModel.find().limit(pageSize)
         }

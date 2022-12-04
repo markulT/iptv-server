@@ -89,7 +89,6 @@ export class UserController {
             const users = await this.userService.getUsers()
             return users
         } catch (e) {
-            console.log(e);
 
         }
     }

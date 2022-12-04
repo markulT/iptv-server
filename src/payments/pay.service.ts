@@ -88,7 +88,6 @@ export class PayService {
     async cancelSubscription(login: string, password: string, check = true) {
         const user = await this.userModel.findOne({login: login})
         const isPassCorrrect = await bcrypt.compare(password, user.password)
-        console.log(password, user.password, 'canceling sub')
         if (check) {
             if (!isPassCorrrect) {
                 throw new Error("Wrong password")
@@ -107,7 +106,6 @@ export class PayService {
             "version": "3",
             "order_id": `${orderId}`
         }, async function (json) {
-            console.log(json.status)
             await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
             result = json
         })
@@ -158,19 +156,17 @@ export class PayService {
         if (!user.mobileSubOrderId) {
             throw new HttpException({message: 'Not subbed ?'}, HttpStatus.SERVICE_UNAVAILABLE)
         }
-        user.mobileSubOrderId = ''
-        user.mobileSubExists = false
-        user.mobileSubLevel = 0
         await this.liqPay.api("request", {
             "action": "unsubscribe",
             "version": "3",
             "order_id": `${orderId}`
         }, async function (json) {
-            console.log(json.status)
             // await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
             result = json
         })
-
+        user.mobileSubOrderId = ''
+        user.mobileSubExists = false
+        user.mobileSubLevel = 0
         await user.save()
         return {
             message:'Successfuly canceled message',
@@ -195,6 +191,14 @@ export class PayService {
 
     async getUser(login: string): Promise<User> {
         const user = await this.userModel.findOne({login: login})
+        return user
+    }
+    async findUserByOrderMobile(orderId:string):Promise<User> {
+        const user = await this.userModel.findOne({mobileSubOrderId:orderId})
+        return user
+    }
+    async findUserByOrderMinistra(orderId:string):Promise<User> {
+        const user = await this.userModel.findOne({orderId:orderId})
         return user
     }
 }

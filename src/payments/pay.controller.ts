@@ -1,5 +1,5 @@
 import {Body, Controller, Delete, Get, HttpException, HttpStatus, Post, Req, Res} from "@nestjs/common";
-import {PayService} from "./pay.service";
+import {ministraApi, PayService} from "./pay.service";
 import {Vimeo} from 'vimeo'
 import {ConfigService} from "@nestjs/config";
 import * as crypto from "crypto";
@@ -38,7 +38,6 @@ export class PayController {
 
     @Post('/createSub')
     async createSub(@Body() body) {
-        console.log('Creating sub')
         const result = await this.payService.createSub(body)
         return result
     }
@@ -55,7 +54,6 @@ export class PayController {
     async payment(@Req() req, @Res() res, @Body() body) {
         const userData = req.user
         let result
-
         //verifying signature
         const liqPayPrivate = this.configService.get('LIQPAY_PRIVATE')
         const sign = this.liqPay.str_to_sign(liqPayPrivate + body.paymentData.data + liqPayPrivate)
@@ -97,13 +95,17 @@ export class PayController {
                                 acqId: paymentData.acq_id,
                             })
                         case 15:
-                            if(typeof isUserMobileSubed == 'string') {
-                                await this.payService.cancelMobileSub({login:userData.login, password:user.password,orderId:user.mobileSubOrderId })
+                            if (typeof isUserMobileSubed == 'string') {
+                                await this.payService.cancelMobileSub({
+                                    login: userData.login,
+                                    password: user.password,
+                                    orderId: user.mobileSubOrderId
+                                })
                             }
                             result = await this.payService.createSubMobile({
-                                login:userData.login,
-                                password:body.password,
-                                orderId:body.paymentData.order_id
+                                login: userData.login,
+                                password: body.password,
+                                orderId: body.paymentData.order_id
                             })
                     }
                 }
@@ -120,12 +122,48 @@ export class PayController {
         //     return result
         // }
     }
+
     @Post('/cancelMobileSub')
     async cancelMobileSub(@Req() req, @Req() res, @Body() body) {
         const userData = req.user
         const orderId = await this.payService.findOrderId(userData.login)
-        const result = await this.payService.cancelMobileSub({login:userData.login, password:body.password, orderId:orderId})
+        const result = await this.payService.cancelMobileSub({
+            login: userData.login,
+            password: body.password,
+            orderId: orderId
+        })
         return result
     }
+
+    @Post('/errorCallback')
+    async errorCallback(@Body() body, @Req() req) {
+        const liqPayPrivate = this.configService.get('LIQPAY_PRIVATE')
+        const sign = this.liqPay.str_to_sign(liqPayPrivate + body.data + liqPayPrivate)
+        if (sign !== body.signature) {
+            throw new HttpException('Not allowed. Wrong signature', HttpStatus.FORBIDDEN)
+        }
+        const jsonData = atob(body.data)
+        const data = JSON.parse(jsonData)
+        if (data.action == 'subscribe' || data.status == 'unsubscribe') {
+            if (data.amount == 15) {
+                const user = await this.payService.findUserByOrderMobile(data.order_id)
+                user.mobileSubExists = false
+                user.mobileSubOrderId = ''
+                user.mobileSubLevel = 0
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                await user.save()
+            } else {
+                const user = await this.payService.findUserByOrderMinistra(data.order_id)
+                await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`)
+                user.orderId = ''
+                user.tvSubLevel = 0
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                await user.save()
+            }
+        }
+    }
+
 
 }

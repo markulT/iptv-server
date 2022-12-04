@@ -20,6 +20,7 @@ export class PayModule implements NestModule {
     configure(consumer: MiddlewareConsumer): any {
         consumer
             .apply(authMiddleware)
+            .exclude({path:'/payments/errorCallback', method:RequestMethod.ALL})
             .forRoutes(PayController)
     }
 }

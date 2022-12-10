@@ -18,6 +18,7 @@ import {Response} from "express";
 import {RoleEnum} from "./role.enum";
 import {User} from "../users/user.schema";
 import {UserService} from "../users/user.service";
+import {PayService} from "../payments/pay.service";
 
 
 @Controller('/admin')
@@ -25,7 +26,8 @@ export class AdminController {
     constructor(
         private adminService:AdminService,
         private abilityFactory: CaslAbilityFactory,
-        private userService: UserService
+        private userService: UserService,
+        private payService: PayService
     ) {
     }
     @Get()
@@ -36,7 +38,6 @@ export class AdminController {
     @Post('/loginByToken')
     async getByToken(@Req() req) {
         const adminAuth = req.user
-        console.log(adminAuth)
         return adminAuth
     }
 
@@ -46,7 +47,6 @@ export class AdminController {
         const fullName:string = body.fullName
         const password:string = body.password
         const role:RoleEnum = body.role
-        console.log(`creating бімж with ${login} ${password} ${role}`)
 
         const adminData = await this.adminService.register(login, password, fullName, role)
         res.cookie('refreshToken', adminData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
@@ -56,7 +56,6 @@ export class AdminController {
     }
     @Post('/login')
     async login(@Body() body, @Res({passthrough:true}) res:Response){
-        console.log('nigger')
         const login:string = body.login
         const password:string = body.password
 
@@ -73,7 +72,6 @@ export class AdminController {
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Delete, User)
-        console.log(`${isAllowed ? 'is allowed to' : 'is not allowed to!!'}`)
         if(!isAllowed) {throw new HttpException("FORBIDDEN", HttpStatus.FORBIDDEN)}
 
         const login = body.login
@@ -156,6 +154,8 @@ export class AdminController {
         if(!ability.can(Action.Delete, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
+        const canceledSub = await this.adminService.cancelSub(userId)
+        const canceledMobileSub = await this.adminService.cancelMinistraSub(userId)
         const status = await this.adminService.deleteClient(userId)
         return 'Successfully deleted'
     }
@@ -183,10 +183,21 @@ export class AdminController {
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Delete, User)) {
-            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+            throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN)
         }
         const result = this.adminService.cancelSub(id)
         return result
     }
-
+    @Delete('/cancelSub/:id')
+    async cancelSub(@Param() param, @Req() req) {
+        const adminAuth = req.user
+        const id:string = param.id
+        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Delete, User)) {
+            throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN)
+        }
+        const result = this.adminService.cancelMinistraSub(id)
+        return result
+    }
 }

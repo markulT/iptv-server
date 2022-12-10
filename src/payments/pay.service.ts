@@ -112,6 +112,7 @@ export class PayService {
 
         user.orderId = ''
         user.tvSubLevel = 0
+        user.ministraDate = ''
         await user.save()
 
         return result
@@ -167,6 +168,7 @@ export class PayService {
         user.mobileSubOrderId = ''
         user.mobileSubExists = false
         user.mobileSubLevel = 0
+        user.mobileDate = ''
         await user.save()
         return {
             message:'Successfuly canceled message',

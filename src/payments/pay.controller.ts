@@ -137,6 +137,7 @@ export class PayController {
 
     @Post('/errorCallback')
     async errorCallback(@Body() body, @Req() req) {
+        console.log('random bullshit got')
         const liqPayPrivate = this.configService.get('LIQPAY_PRIVATE')
         const sign = this.liqPay.str_to_sign(liqPayPrivate + body.data + liqPayPrivate)
         if (sign !== body.signature) {
@@ -144,9 +145,12 @@ export class PayController {
         }
         const jsonData = atob(body.data)
         const data = JSON.parse(jsonData)
-        if (data.action == 'subscribe' || data.status == 'unsubscribe') {
+        console.log(data)
+        if (data.action == 'subscribe' && data.status == 'unsubscribed') {
+            console.log('works')
             if (data.amount == 15) {
                 const user = await this.payService.findUserByOrderMobile(data.order_id)
+                console.log(user)
                 user.mobileSubExists = false
                 user.mobileSubOrderId = ''
                 user.mobileSubLevel = 0

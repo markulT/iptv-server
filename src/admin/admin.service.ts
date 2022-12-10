@@ -107,7 +107,6 @@ export class AdminService {
         }
 
         const uniqueEmail = await this.userModel.findOne({email})
-        console.log(uniqueEmail)
         if(uniqueEmail?.isActivated) {
             throw new HttpException('email already exists', HttpStatus.CONFLICT)
         }
@@ -126,17 +125,27 @@ export class AdminService {
         }
     }
     async deleteClient(id) {
+        const user = await this.userModel.findById(id)
         await this.userModel.findByIdAndDelete(id)
     }
 
     async cancelSub(id:string) {
         const user = await this.userModel.findById(id)
         const isUserSubbed = await this.payService.isUserSubed(user.login, 'mobileSubOrderId')
-        console.log(isUserSubbed)
         if (typeof isUserSubbed == 'string') {
             const result = await this.payService.cancelMobileSub({login:user.login, password:user.password,orderId:user.mobileSubOrderId}, false)
             return result
         }
-        return 'йди нахуй'
+        return 'No sub available to remove'
+    }
+    async cancelMinistraSub(id:string) {
+        const user = await this.userModel.findById(id)
+        const isUserSubbed = await this.payService.isUserSubed(user.login,'orderId')
+        if(typeof isUserSubbed == 'string') {
+            const result = await this.payService.cancelSubscription(user.login, user.password, false)
+            return result
+        }
+        return 'No sub available to remove'
+
     }
 }

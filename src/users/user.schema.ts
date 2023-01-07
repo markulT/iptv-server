@@ -50,7 +50,7 @@ export class User {
     @Prop({default:false})
     mobileSubExists:boolean
 
-    @Prop({default:1})
+    @Prop({default:0})
     mobileSubLevel:number
 
     @Prop()

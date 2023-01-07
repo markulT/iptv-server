@@ -4,6 +4,7 @@ import {Model} from 'mongoose';
 import {Injectable} from "@nestjs/common";
 import {InjectModel} from "@nestjs/mongoose";
 import * as jwt from 'jsonwebtoken'
+import {log} from "util";
 
 
 @Injectable()
@@ -23,16 +24,32 @@ export class TokenService {
         }
     }
 
-    async saveToken(userId, refreshToken) {
+    async saveToken(userId, refreshToken, previousToken = '') {
 
         const tokenData = await this.tokenModel.findOne({user: userId})
         if (tokenData) {
-            tokenData.refreshToken = refreshToken
+            if (previousToken !== '') {
+                console.log('swap')
+                tokenData.refreshToken = tokenData.refreshToken.map(i=>{
+                    if(i==previousToken) {
+                        i=refreshToken
+                    }
+                    return i
+                })
+                await tokenData.save()
+                return
+            } else if (tokenData.refreshToken.length >= 2) {
+                console.log('push')
+                tokenData.refreshToken.pop()
+                tokenData.refreshToken.unshift(refreshToken)
+            } else {
+                tokenData.refreshToken.unshift(refreshToken);
+            }
             await tokenData.save()
 
             return tokenData
         }
-        const token = await this.tokenModel.create({user: userId, refreshToken})
+        const token = await this.tokenModel.create({user: userId, refreshToken:[refreshToken]})
         return token
     }
 
@@ -61,7 +78,7 @@ export class TokenService {
     }
 
     async findToken(refreshToken) {
-        const userData = await this.tokenModel.findOne({refreshToken:refreshToken})
+        const userData = await this.tokenModel.findOne({refreshToken: refreshToken})
         return userData
     }
 }

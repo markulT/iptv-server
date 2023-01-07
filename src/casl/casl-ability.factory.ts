@@ -2,6 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {Admin} from "../admin/admin.schema";
 import {Ability, AbilityBuilder, AbilityClass, ExtractSubjectType, InferSubjects} from "@casl/ability";
 import {User} from "../users/user.schema";
+import {Channel} from "../channelManagement/channelManagement.schema";
 
 export enum Action {
     Manage = 'manage',
@@ -11,7 +12,7 @@ export enum Action {
     Delete = 'delete'
 }
 
-export type Subjects = InferSubjects<typeof Admin | typeof User | 'all'>
+export type Subjects = InferSubjects<typeof Admin | typeof User | typeof Channel | 'all'>
 
 export type AppAbility = Ability<[Action, Subjects]>
 
@@ -23,6 +24,8 @@ export class CaslAbilityFactory {
             can(Action.Manage, 'all')
         } else if(admin.role === "Dealer") {
             can([Action.Read,Action.Create, Action.Update], User)
+        } else if (admin.role === "SysAdmin") {
+            can(Action.Manage, Channel)
         }
         return build({
             detectSubjectType:(item) => item.constructor as ExtractSubjectType<Subjects>

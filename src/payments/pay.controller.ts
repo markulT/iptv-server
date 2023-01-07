@@ -137,7 +137,6 @@ export class PayController {
 
     @Post('/errorCallback')
     async errorCallback(@Body() body, @Req() req) {
-        console.log('random bullshit got')
         const liqPayPrivate = this.configService.get('LIQPAY_PRIVATE')
         const sign = this.liqPay.str_to_sign(liqPayPrivate + body.data + liqPayPrivate)
         if (sign !== body.signature) {

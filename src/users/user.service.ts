@@ -145,7 +145,6 @@ export class UserService {
         }
         const userData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
-
         if (!userData || !tokenFromDb) {
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
         }
@@ -157,9 +156,9 @@ export class UserService {
 
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
-
-
-        await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
+        console.log('i say giga you say nigga')
+        console.log(refreshToken)
+        await this.tokenService.saveToken(userDto.id, tokens.refreshToken, refreshToken)
         return {
             ...tokens,
             user: userDto

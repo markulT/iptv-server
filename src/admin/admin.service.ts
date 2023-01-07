@@ -64,7 +64,6 @@ export class AdminService {
         const adminDto = new AdminDto(admin)
         const tokens = this.tokenService.generateToken({...adminDto})
         await this.tokenService.saveToken(adminDto.id, tokens.refreshToken)
-        console.log('Successfully logined')
         return {
             ...tokens,
             admin:adminDto
@@ -82,7 +81,6 @@ export class AdminService {
         const adminData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
         if(!adminData || !tokenFromDb) {
-            console.log('negor')
             throw new HttpException('Not authorized', HttpStatus.UNAUTHORIZED)
         }
         const admin = await this.adminModel.findById(tokenFromDb.user)
@@ -90,10 +88,6 @@ export class AdminService {
         const tokens = this.tokenService.generateToken({...adminDto})
 
         await this.tokenService.saveToken(adminDto.id, tokens.refreshToken)
-        console.log({
-            ...tokens,
-            admin:adminDto
-        })
         return {
             ...tokens,
             admin:adminDto

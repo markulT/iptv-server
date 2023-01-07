@@ -45,13 +45,11 @@ export class authMiddleware implements NestMiddleware {
         }
         const userData = this.tokenService.validateAccessToken(accessToken)
         if (!userData) {
-            console.log('ERROR')
             return next(res.status(401).send('User'))
         }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const user = await this.userModel.findOne({login:userData.login})
-        console.log(user)
 
         req.user = userData
         next()

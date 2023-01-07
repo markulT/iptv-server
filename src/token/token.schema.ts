@@ -11,8 +11,8 @@ export class Token {
     })
     user: User;
 
-    @Prop({ required: true })
-    refreshToken: string;
+    @Prop({ required: true, default:[]})
+    refreshToken: string[];
 }
 
 export const TokenSchema = SchemaFactory.createForClass(Token);

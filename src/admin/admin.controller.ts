@@ -67,7 +67,6 @@ export class AdminController {
     }
     @Post('/createClient')
     async createClient(@Body() body, @Req() req, @Res({passthrough: true}) res:Response) {
-        console.log('pezdaaa')
         const adminAuth = req.user
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
@@ -82,7 +81,6 @@ export class AdminController {
         const address = body.address
 
         const user = await this.adminService.createClient(login,password,fullName,email,phone,address)
-        console.log(user)
         return {
             user
         }
@@ -118,14 +116,12 @@ export class AdminController {
         const adminAuth = req.user
         const pageId = reqParam.pageId
         const pageSize = reqParam.pageSize
-        console.log(`${pageId} - ${pageSize}`)
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
         const page = await this.userService.getPage(pageId, pageSize)
-        console.log(page)
         const lenght = await this.userService.getLenght()
         return {
             lenght, page
@@ -172,7 +168,6 @@ export class AdminController {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
         const users = await this.userService.findUsers(regex)
-        console.log(users, 'finded users')
         return {users}
     }
 

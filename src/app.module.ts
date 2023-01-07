@@ -15,6 +15,7 @@ import { KalturaModule } from './kaltura/kaltura.module';
 import { OttModule } from './ott/ott.module';
 import {RavenInterceptor, RavenModule} from "nest-raven";
 import {APP_INTERCEPTOR} from "@nestjs/core";
+import {ChannelManagementModule} from "./channelManagement/channelManagement.module";
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import {APP_INTERCEPTOR} from "@nestjs/core";
     CaslModule,
     KalturaModule,
     OttModule,
-    RavenModule
+    RavenModule,
+    ChannelManagementModule
   ],
   controllers: [AppController],
   providers: [AppService,{

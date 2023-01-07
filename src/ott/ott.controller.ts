@@ -37,7 +37,6 @@ export class OttController {
 
     @Get('/stream')
     async getStream(@Req() req, @Res({passthrough:true}) res) {
-        console.log('nigga')
         const userData = req.user
         const userFromDB = await this.userModel.findOne({login:userData.login})
         if(!userFromDB.mobileSubExists || !userFromDB.mobileSubOrderId) {

@@ -156,8 +156,6 @@ export class UserService {
 
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
-        console.log('i say giga you say nigga')
-        console.log(refreshToken)
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken, refreshToken)
         return {
             ...tokens,

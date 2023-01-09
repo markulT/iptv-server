@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import {Binary} from "mongodb";
 
 export type ChannelDocument = Channel & Document;
 

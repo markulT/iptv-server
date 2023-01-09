@@ -111,7 +111,7 @@ export class ChannelManagementController {
         await fs.unlink("files/" + file.filename, (err)=>{
             if (err) console.log(err)
         })
-        return "Aboba"
+        return "image successfully edited"
     }
 
     @Delete("/delete/:id")
@@ -164,7 +164,6 @@ export class ChannelManagementController {
         // }
         const pageId = reqParam.pageId
         const pageSize:number = reqParam.pageSize
-        console.log(`these mfs ${pageSize} ${pageId}`)
         const page = await this.channelManagementService.getPage(pageId,pageSize)
         const length = await this.channelManagementService.getLength()
         return {page, length}

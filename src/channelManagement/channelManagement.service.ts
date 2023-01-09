@@ -3,8 +3,8 @@ import {InjectModel} from "@nestjs/mongoose";
 import {Channel, ChannelDocument} from "./channelManagement.schema";
 import {Model} from "mongoose";
 import {ChannelPropEnum} from "../dtos/channel.dto";
-
-
+// const Binary = require("mongodb").Binary
+import {Binary} from 'mongodb'
 
 @Injectable()
 export class ChannelManagementService {
@@ -17,6 +17,7 @@ export class ChannelManagementService {
         return channels
     }
     async create(name:string, title:string,description:string, imgData, imgName:string):Promise<Channel> {
+        console.log(imgData)
         const channel = await this.channelModel.create({name:name,title:title,description:description, imgData:imgData,imgName:imgName})
         return channel
     }
@@ -49,8 +50,9 @@ export class ChannelManagementService {
         return channel
     }
     async editImage(id,imgData, imgName) {
+        const binImage = new Binary(imgData)
         const channel = await this.channelModel.findById(id)
-        channel.imgData = imgData
+        channel.imgData = binImage
         channel.imgName = imgName
         await channel.save()
     }

@@ -16,7 +16,7 @@ export class Channel {
     description:string
 
     @Prop()
-    imgData:Buffer
+    imgData:Binary
 
     @Prop()
     imgName:string

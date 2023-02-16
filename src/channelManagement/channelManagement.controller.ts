@@ -140,7 +140,6 @@ export class ChannelManagementController {
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Update, User)
-
         if(!isAllowed) {
             throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         }

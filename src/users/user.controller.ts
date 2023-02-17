@@ -62,7 +62,6 @@ export class UserController {
     @Post('/logout')
     async logout(@Req() req: Request, @Res({passthrough:true}) res) {
 
-        console.log('requested')
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const { refreshToken } = req.cookies

@@ -45,7 +45,10 @@ export class OttController {
 
         const {stream} = req.query
         const ipRequest = req.header('x-forwarded-for')
+        console.log(`! ${ipRequest} and ${stream}`)
         const streamLink = await this.instance.get(`https://testsoft.xyz/video.php?stream=${stream}&ipaddr=${ipRequest}`).then(res=>res.data)
+        console.log(streamLink)
+
         return streamLink
     }
 

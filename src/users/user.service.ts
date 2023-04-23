@@ -88,12 +88,14 @@ export class UserService {
         if (!user) {
             throw new Error('User does not exist')
         }
+
         const isPassEquals = await bcrypt.compare(password, user.password)
         if (!isPassEquals) {
             throw new HttpException('Wrong password', HttpStatus.EXPECTATION_FAILED)
         }
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
+
 
         const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`, {
             method: "GET",
@@ -103,7 +105,6 @@ export class UserService {
         })
 
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
-
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
 
         return {

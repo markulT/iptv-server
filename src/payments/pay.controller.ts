@@ -5,10 +5,8 @@ import {ConfigService} from "@nestjs/config";
 import * as crypto from "crypto";
 import Liqpay from "./payy";
 import {log} from "util";
-import {createReadStream} from "fs";
-import {doc} from "prettier";
-import join = doc.builders.join;
-import * as fs from "fs";
+import * as http from "http";
+
 
 
 @Controller('/payments')
@@ -147,6 +145,16 @@ export class PayController {
             orderId: orderId
         })
         return result
+    }
+
+    @Get('/schedule')
+    async getSchedule(@Req() req, @Res() res) {
+        const userData = req.user
+        const isSub = await this.payService.isUserSubed(userData.login, 'orderId')
+        if(!isSub) {
+            throw new HttpException("User is not subbed", HttpStatus.FORBIDDEN);
+        }
+        res.sendFile('src/assets/1.jpg')
     }
 
     @Post('/errorCallback')

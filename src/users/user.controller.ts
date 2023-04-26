@@ -65,7 +65,6 @@ export class UserController {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const { refreshToken } = req.cookies
-        console.log(refreshToken)
         const token = await this.userService.logout(refreshToken)
         res.clearCookie('refreshToken')
         return { token }

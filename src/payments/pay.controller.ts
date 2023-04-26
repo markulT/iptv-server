@@ -5,6 +5,10 @@ import {ConfigService} from "@nestjs/config";
 import * as crypto from "crypto";
 import Liqpay from "./payy";
 import {log} from "util";
+import {createReadStream} from "fs";
+import {doc} from "prettier";
+import join = doc.builders.join;
+import * as fs from "fs";
 
 
 @Controller('/payments')
@@ -40,6 +44,16 @@ export class PayController {
     async createSub(@Body() body) {
         const result = await this.payService.createSub(body)
         return result
+    }
+
+    @Get('/scamina')
+    async getScamina(@Req() req, @Res() res) {
+        const userData = req.user
+        const isSub = await this.payService.isUserSubed(userData.login, 'orderId')
+        if (!isSub) {
+            throw new HttpException("you are gay", HttpStatus.FORBIDDEN);
+        }
+        res.sendFile('path/to/image');
     }
 
     @Post('/cancelSub')

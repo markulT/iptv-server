@@ -36,9 +36,6 @@ export class authMiddleware implements NestMiddleware {
             return next(res.status(401).send('User'))
         }
         const accessToken = authHeader.split(' ')[1]
-        // console.log('1728568y123578612387561283568793126587123657896123987568273659812639856837125')
-        // console.log(accessToken)
-        // console.log('1728568y123578612387561283568793126587123657896123987568273659812639856837125')
         if (!accessToken) {
 
             return next(res.status(401).send('User'))
@@ -47,6 +44,7 @@ export class authMiddleware implements NestMiddleware {
         if (!userData) {
             return next(res.status(401).send('User'))
         }
+
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const user = await this.userModel.findOne({login:userData.login})

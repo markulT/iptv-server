@@ -44,15 +44,6 @@ export class PayController {
         return result
     }
 
-    @Get('/scamina')
-    async getScamina(@Req() req, @Res() res) {
-        const userData = req.user
-        const isSub = await this.payService.isUserSubed(userData.login, 'orderId')
-        if (!isSub) {
-            throw new HttpException("you are gay", HttpStatus.FORBIDDEN);
-        }
-        res.sendFile('path/to/image');
-    }
 
     @Post('/cancelSub')
     async cancelSub(@Body() body) {
@@ -83,6 +74,17 @@ export class PayController {
             case 'subscribe':
                 if (paymentData.status == 'subscribed') {
                     switch (paymentData.amount) {
+                        case 1:
+                            if (typeof isUserSubed == 'string') {
+                                await this.payService.cancelSubscription(userData.login, user.password, false)
+                            }
+                            result = await this.payService.createSub({
+                                login: userData.login,
+                                password: body.password,
+                                tariffPlan: 1,
+                                orderId: paymentData.order_id,
+                                acqId: paymentData.acq_id,
+                            })
                         case 5:
                             if (typeof isUserSubed == 'string') {
                                 await this.payService.cancelSubscription(userData.login, user.password, false)
@@ -94,7 +96,6 @@ export class PayController {
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
-
                         case 10:
                             if (typeof isUserSubed == 'string') {
                                 await this.payService.cancelSubscription(userData.login, user.password, false)

@@ -154,13 +154,13 @@ export class ChannelManagementController {
 
     @Get("/getPage")
     async getPage(@Req() req, @Param() param, @Query() reqParam) {
-        const adminAuth = req.user
-        const admin = await this.adminService.getAdmin(adminAuth.login)
-        const ability = this.abilityFactory.defineAbility(admin)
-        const isAllowed = ability.can(Action.Read, Channel)
-        if(!isAllowed) {
-            throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
-        }
+        // const adminAuth = req.user
+        // const admin = await this.adminService.getAdmin(adminAuth.login)
+        // const ability = this.abilityFactory.defineAbility(admin)
+        // const isAllowed = ability.can(Action.Read, Channel)
+        // if(!isAllowed) {
+        //     throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
+        // }
         const pageId = reqParam.pageId
         const pageSize:number = reqParam.pageSize
         const page = await this.channelManagementService.getPage(pageId,pageSize)

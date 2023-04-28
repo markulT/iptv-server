@@ -46,6 +46,12 @@ export class PayService {
         return 'test'
     }
 
+    async checkPass(login:string, password:string):Promise<boolean> {
+        const user = await this.userModel.findOne({login});
+        const arePassEqual = await bcrypt.compare(password, user.password);
+        return arePassEqual;
+    }
+
 
     async createSub({login, password, tariffPlan, orderId, acqId}) {
         const accountNumber = uuid.v4()
@@ -58,10 +64,10 @@ export class PayService {
         if (!user) {
             throw new Error('User does not exist')
         }
-        const isPassEquals = await bcrypt.compare(password, user.password)
-        if (!isPassEquals) {
-            throw new Error('Incorrect password')
-        }
+        // const isPassEquals = await bcrypt.compare(password, user.password)
+        // if (!isPassEquals) {
+        //     throw new Error('Incorrect password')
+        // }
 
         const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
         const requestStatus = userExists.data.status
@@ -122,15 +128,15 @@ export class PayService {
 
         const user = await this.userModel.findOne({login})
 
-        const arePassEqual = await bcrypt.compare(password, user.password)
+        // const arePassEqual = await bcrypt.compare(password, user.password)
 
         if (!user) {
             throw new HttpException('User does not exist', HttpStatus.NOT_FOUND)
         }
 
-        if (!arePassEqual) {
-            throw new HttpException('Incorrect password', HttpStatus.FORBIDDEN)
-        }
+        // if (!arePassEqual) {
+        //     throw new HttpException('Incorrect password', HttpStatus.FORBIDDEN)
+        // }
         const date = new Date().toLocaleDateString('ru')
         user.mobileSubOrderId = orderId
         user.mobileSubExists = true

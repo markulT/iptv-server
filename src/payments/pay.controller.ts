@@ -85,6 +85,11 @@ export class PayController {
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
+                            await this.payService.createSubMobile({
+                                login: userData.login,
+                                password: body.password,
+                                orderId: body.paymentData.order_id
+                            })
                         case 5:
                             if (typeof isUserSubed == 'string') {
                                 await this.payService.cancelSubscription(userData.login, user.password, false)
@@ -96,6 +101,11 @@ export class PayController {
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
+                            await this.payService.createSubMobile({
+                                login: userData.login,
+                                password: body.password,
+                                orderId: body.paymentData.order_id
+                            })
                         case 10:
                             if (typeof isUserSubed == 'string') {
                                 await this.payService.cancelSubscription(userData.login, user.password, false)
@@ -106,6 +116,11 @@ export class PayController {
                                 tariffPlan: 2,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
+                            })
+                            await this.payService.createSubMobile({
+                                login: userData.login,
+                                password: body.password,
+                                orderId: body.paymentData.order_id
                             })
                         case 15:
                             if (typeof isUserMobileSubed == 'string') {
@@ -134,6 +149,16 @@ export class PayController {
         //     const result = await this.payService
         //     return result
         // }
+    }
+
+    @Post("/checkPass")
+    async checkPass(@Req() req, @Res() res, @Body() body) {
+        const userData = req.user;
+        const isPassCorrect = await this.payService.checkPass(userData.login, body.password);
+        if (!isPassCorrect) {
+            throw new HttpException("Wrong password", HttpStatus.EXPECTATION_FAILED)
+        }
+        res.send(isPassCorrect);
     }
 
     @Post('/cancelMobileSub')

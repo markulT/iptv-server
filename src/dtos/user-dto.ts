@@ -1,5 +1,4 @@
 export class UserDto {
-    login;
     id;
     fullName;
     isActivated;
@@ -8,8 +7,9 @@ export class UserDto {
     mobileSubOrderId;
     mobileSubLevel;
     orderId;
+    email
     constructor(model) {
-        this.login = model.login
+        this.email = model.email
         this.id = model._id
         this.fullName = model.fullName
         this.isActivated = model.isActivated

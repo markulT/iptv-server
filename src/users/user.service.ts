@@ -40,10 +40,10 @@ export class UserService {
         return 'Hola comosta'
     }
 
-    async registration(login: string, password: string, fullName: string, email:string, phone:string, address:string):Promise<loginData> {
+    async registration(password: string, fullName: string, email:string, phone:string, address:string):Promise<loginData> {
 
         // check if user exists
-        const candidate = await this.userModel.findOne({ login })
+        const candidate = await this.userModel.findOne({ email })
         if (candidate) {
             throw new HttpException("User already exists", HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -58,12 +58,12 @@ export class UserService {
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
         const date = new Date().toLocaleDateString('ru')
-        const user = await this.userModel.create({ login, password: hash, fullName, activationLink, phone, address, email, signDate:date })
+        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email, signDate:date })
 
         // create and save jwts
         const userDto = new UserDto(user);
 
-        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`, {
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`, {
             method: "GET",
             headers: {
                 Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'
@@ -83,8 +83,8 @@ export class UserService {
         }
     }
 
-    async login(login, password):Promise<loginData> {
-        const user = await this.userModel.findOne({ login })
+    async login(email, password):Promise<loginData> {
+        const user = await this.userModel.findOne({ email })
         if (!user) {
             throw new Error('User does not exist')
         }
@@ -96,8 +96,7 @@ export class UserService {
         const userDto = new UserDto(user)
         const tokens = this.tokenService.generateToken({ ...userDto })
 
-
-        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`, {
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`, {
             method: "GET",
             headers: {
                 Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'
@@ -106,7 +105,7 @@ export class UserService {
 
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-
+        console.log(userDto)
         return {
             ...tokens,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -195,7 +194,7 @@ export class UserService {
     }
     async getUser(id):Promise<findUserType> {
         const user = await this.userModel.findById(id)
-        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`, {
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.email}`, {
             method: "GET",
             headers: {
                 Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'
@@ -225,7 +224,7 @@ export class UserService {
     async getProfile(userData) {
         const user = await this.userModel.findOne({login:userData.login})
 
-        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`, {
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.email}`, {
             method: "GET",
             headers: {
                 Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'

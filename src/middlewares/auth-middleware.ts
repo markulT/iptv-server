@@ -47,7 +47,7 @@ export class authMiddleware implements NestMiddleware {
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        const user = await this.userModel.findOne({login:userData.login})
+        const user = await this.userModel.findOne({email:userData.email})
 
         req.user = userData
         next()

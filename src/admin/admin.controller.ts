@@ -43,12 +43,12 @@ export class AdminController {
 
     @Post('/register')
     async register(@Body() body, @Res({passthrough:true}) res:Response){
-        const login:string = body.login
+        const email:string = body.login
         const fullName:string = body.fullName
         const password:string = body.password
         const role:RoleEnum = body.role
 
-        const adminData = await this.adminService.register(login, password, fullName, role)
+        const adminData = await this.adminService.register(email, password, fullName, role)
         res.cookie('refreshToken', adminData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
         return {
             adminData
@@ -56,10 +56,10 @@ export class AdminController {
     }
     @Post('/login')
     async login(@Body() body, @Res({passthrough:true}) res:Response){
-        const login:string = body.login
+        const email:string = body.login
         const password:string = body.password
 
-        const adminData = await this.adminService.login(login, password)
+        const adminData = await this.adminService.login(email, password)
         res.cookie('refreshToken', adminData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
         return {
             adminData
@@ -68,19 +68,19 @@ export class AdminController {
     @Post('/createClient')
     async createClient(@Body() body, @Req() req, @Res({passthrough: true}) res:Response) {
         const adminAuth = req.user
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Delete, User)
         if(!isAllowed) {throw new HttpException("FORBIDDEN", HttpStatus.FORBIDDEN)}
 
-        const login = body.login
+        // const login = body.login
         const password = body.password
         const fullName = body.fullName
         const email = body.email
         const phone = body.phone
         const address = body.address
 
-        const user = await this.adminService.createClient(login,password,fullName,email,phone,address)
+        const user = await this.adminService.createClient(password,fullName,email,phone,address)
         return {
             user
         }
@@ -100,7 +100,7 @@ export class AdminController {
     @Get('/getUsers/')
     async getUsers(@Req() req) {
         const adminAuth = req.user
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
@@ -116,7 +116,7 @@ export class AdminController {
         const adminAuth = req.user
         const pageId = reqParam.pageId
         const pageSize = reqParam.pageSize
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
@@ -132,7 +132,7 @@ export class AdminController {
     async getUser(@Req() req, @Param() param) {
         const adminAuth = req.user
         const userId = param.id
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
@@ -145,7 +145,7 @@ export class AdminController {
     async deleteClient(@Param() param, @Req() req) {
         const adminAuth = req.user
         const userId = param.id
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Delete, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
@@ -162,7 +162,7 @@ export class AdminController {
         const pageSize = reqParam.pageSize
         const regex = reqParam.regex
         const adminAuth = req.user
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
@@ -175,7 +175,7 @@ export class AdminController {
     async cancelMobileSub(@Param() param, @Req() req) {
         const adminAuth = req.user
         const id:string = param.id
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Delete, User)) {
             throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN)
@@ -187,7 +187,7 @@ export class AdminController {
     async cancelSub(@Param() param, @Req() req) {
         const adminAuth = req.user
         const id:string = param.id
-        const admin = await this.adminService.getAdmin(adminAuth.login)
+        const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
         if(!ability.can(Action.Delete, User)) {
             throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN)

@@ -46,20 +46,20 @@ export class PayService {
         return 'test'
     }
 
-    async checkPass(login:string, password:string):Promise<boolean> {
-        const user = await this.userModel.findOne({login});
+    async checkPass(email:string, password:string):Promise<boolean> {
+        const user = await this.userModel.findOne({email});
         const arePassEqual = await bcrypt.compare(password, user.password);
         return arePassEqual;
     }
 
 
-    async createSub({login, password, tariffPlan, orderId, acqId}) {
+    async createSub({email, password, tariffPlan, orderId, acqId}) {
         const accountNumber = uuid.v4()
         const status = 1
         let result
 
 
-        const user = await this.userModel.findOne({login})
+        const user = await this.userModel.findOne({email})
         const fullName = user.fullName
         if (!user) {
             throw new Error('User does not exist')
@@ -69,7 +69,7 @@ export class PayService {
         //     throw new Error('Incorrect password')
         // }
 
-        const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
+        const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
         const requestStatus = userExists.data.status
         const date = new Date().toLocaleDateString('ru')
         if (requestStatus == "ERROR") {
@@ -81,7 +81,7 @@ export class PayService {
             //     tariff_plan:`${tariffPlan}`,
             //     status:`${status}`
             // })
-            result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`, `login=${login}&password=${password}&full_name=${fullName}&account_number=${accountNumber}&tariff_plan=${tariffPlan}&status=${status}`).then(res => res.data)
+            result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`, `login=${email}&password=${password}&full_name=${fullName}&account_number=${accountNumber}&tariff_plan=${tariffPlan}&status=${status}`).then(res => res.data)
             user.orderId = orderId
             user.acqId = acqId
             user.tvSubLevel = tariffPlan
@@ -91,8 +91,8 @@ export class PayService {
         return result
     }
 
-    async cancelSubscription(login: string, password: string, check = true) {
-        const user = await this.userModel.findOne({login: login})
+    async cancelSubscription(email: string, password: string, check = true) {
+        const user = await this.userModel.findOne({email})
         const isPassCorrrect = await bcrypt.compare(password, user.password)
         if (check) {
             if (!isPassCorrrect) {
@@ -112,7 +112,7 @@ export class PayService {
             "version": "3",
             "order_id": `${orderId}`
         }, async function (json) {
-            await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
+            await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
             result = json
         })
 
@@ -124,9 +124,9 @@ export class PayService {
         return result
     }
 
-    async createSubMobile({login, password, orderId}) {
+    async createSubMobile({email, password, orderId}) {
 
-        const user = await this.userModel.findOne({login})
+        const user = await this.userModel.findOne({email})
 
         // const arePassEqual = await bcrypt.compare(password, user.password)
 
@@ -146,8 +146,8 @@ export class PayService {
         return 'Success'
     }
 
-    async cancelMobileSub({login, password, orderId}, check = true):Promise<cancelResponseType> {
-        const user = await this.userModel.findOne({login: login})
+    async cancelMobileSub({email, password, orderId}, check = true):Promise<cancelResponseType> {
+        const user = await this.userModel.findOne({email:email})
         const arePassEqual = await bcrypt.compare(password, user.password)
         let result
 
@@ -183,13 +183,13 @@ export class PayService {
         }
     }
 
-    async findOrderId(login) {
-        const user = await this.userModel.findOne({login: login})
+    async findOrderId(email) {
+        const user = await this.userModel.findOne({email:email})
         return user.mobileSubOrderId
     }
 
-    async isUserSubed(login: string, key: subType): Promise<boolean | string> {
-        const user = await this.userModel.findOne({login: login})
+    async isUserSubed(email: string, key: subType): Promise<boolean | string> {
+        const user = await this.userModel.findOne({email:email})
         if (user[key] !== '') {
             return user[key]
         } else {
@@ -197,8 +197,8 @@ export class PayService {
         }
     }
 
-    async getUser(login: string): Promise<User> {
-        const user = await this.userModel.findOne({login: login})
+    async getUser(email: string): Promise<User> {
+        const user = await this.userModel.findOne({email:email})
         return user
     }
     async findUserByOrderMobile(orderId:string):Promise<User> {

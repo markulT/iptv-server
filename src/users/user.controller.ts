@@ -22,7 +22,6 @@ export class UserController {
     async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response):Promise<responseAuth> {
         try {
             // getting user data
-            const login = createUserDto.login
             const password = createUserDto.password
             const fullName = createUserDto.fullName
             const email = createUserDto.email
@@ -30,7 +29,7 @@ export class UserController {
             const address = createUserDto.address
 
 
-            const userData = await this.userService.registration(login, password, fullName, email, phone, address)
+            const userData = await this.userService.registration(password, fullName, email, phone, address)
             response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
             return {
                 userData
@@ -48,9 +47,10 @@ export class UserController {
 
 
         // getting request`s body data
-        const login = createUserDto.login
+        const email = createUserDto.email
         const password = createUserDto.password
-        const userData = await this.userService.login(login, password)
+        const userData = await this.userService.login(email, password)
+        console.log(userData)
         res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
         // res.setHeader('Set-Cookie', `refreshToken=${userData.refreshToken}; HttpOnly; SameSite=None ; Secure ; Max-Age=${30 * 24 * 60 * 60 * 1000}; Path=/`)
 

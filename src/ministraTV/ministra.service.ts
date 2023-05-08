@@ -15,31 +15,25 @@ export class MinistraService {
     }
 
     async changeMacAddesss(body, userLogin) {
-
-
-
-        const login = userLogin
+        const email = userLogin
 
         const newMacAddress = body.newMac
-        console.log(newMacAddress)
 
-        const user = await this.userModel.findOne({ login })
+        const user = await this.userModel.findOne({ email })
         if (!user) {
             throw new Error('User does not exist')
         }
-        console.log('works')
         if(!user.isActivated) {
             return {status:403}
         }
 
-        const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${login}`)
+        const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
         const requestStatus = userExists.data.status
-        
-        console.log("Adding user to MinistraTV database...")
+
         if (requestStatus == "ERROR") {
             return {message:'No such user.Buy tariff first', statusCode:404}
         }
-        const response = await ministraApi.put(`http://a7777.top/stalker_portal/api/v1/users/${login}`, `stb_mac=${newMacAddress}`).then(res=>res.data)
+        const response = await ministraApi.put(`http://a7777.top/stalker_portal/api/v1/users/${email}`, `stb_mac=${newMacAddress}`).then(res=>res.data)
         return response
     }
 }

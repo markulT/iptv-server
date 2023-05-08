@@ -36,24 +36,24 @@ export class AdminService {
     test():string {
         return 'works'
     }
-    async register(login:string, password:string,fullName:string, role:RoleEnum):Promise<SuccessResponse> {
-        const candidate = await this.adminModel.findOne({login})
+    async register(email:string, password:string,fullName:string, role:RoleEnum):Promise<SuccessResponse> {
+        const candidate = await this.adminModel.findOne({email})
         if(candidate) {
             throw new HttpException('User already exists',HttpStatus.NOT_ACCEPTABLE)
         }
         const saltRounds = 10
         const hashedPassword = await bcrypt.hash(password, saltRounds)
-        const user = await this.adminModel.create({login, password:hashedPassword,fullName:fullName, role:role })
+        const user = await this.adminModel.create({email, password:hashedPassword,fullName:fullName, role:role })
         const adminDto = new AdminDto(user)
-        const tokens = this.tokenService.generateToken({...AdminDto})
+        const tokens = this.tokenService.generateToken({...adminDto})
         await this.tokenService.saveToken(adminDto.id, tokens.refreshToken)
         return {
             ...tokens,
             admin:adminDto
         }
     }
-    async login (login:string, password:string):Promise<SuccessResponse> {
-        const admin = await this.adminModel.findOne({login})
+    async login (email:string, password:string):Promise<SuccessResponse> {
+        const admin = await this.adminModel.findOne({email})
         if(!admin) {
             throw new HttpException('User does not exist', HttpStatus.NOT_FOUND)
         }
@@ -69,11 +69,10 @@ export class AdminService {
             admin:adminDto
         }
     }
-    async getAdmin(login) {
-        return await this.adminModel.findOne({login})
+    async getAdmin(email) {
+        return await this.adminModel.findOne({email})
     }
     async refresh(refreshToken):Promise<SuccessResponse> {
-
 
         if(!refreshToken) {
             throw new HttpException('Not authorized', HttpStatus.UNAUTHORIZED)
@@ -94,11 +93,11 @@ export class AdminService {
         }
 
     }
-    async createClient(login: string, password: string, fullName: string, email:string, phone:string, address:string) {
-        const candidate = await this.userModel.findOne({ login })
-        if (candidate) {
-            throw new HttpException('User already exists', HttpStatus.CONFLICT)
-        }
+    async createClient(password: string, fullName: string, email:string, phone:string, address:string) {
+        // const candidate = await this.userModel.findOne({ email })
+        // if (candidate) {
+        //     throw new HttpException('User already exists', HttpStatus.CONFLICT)
+        // }
 
         const uniqueEmail = await this.userModel.findOne({email})
         if(uniqueEmail?.isActivated) {
@@ -108,7 +107,7 @@ export class AdminService {
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
-        const user = await this.userModel.create({ login, password: hash, fullName, activationLink, phone, address, email })
+        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email })
 
         // create and save jwts
 
@@ -125,18 +124,18 @@ export class AdminService {
 
     async cancelSub(id:string) {
         const user = await this.userModel.findById(id)
-        const isUserSubbed = await this.payService.isUserSubed(user.login, 'mobileSubOrderId')
+        const isUserSubbed = await this.payService.isUserSubed(user.email, 'mobileSubOrderId')
         if (typeof isUserSubbed == 'string') {
-            const result = await this.payService.cancelMobileSub({login:user.login, password:user.password,orderId:user.mobileSubOrderId}, false)
+            const result = await this.payService.cancelMobileSub({email:user.email, password:user.password,orderId:user.mobileSubOrderId}, false)
             return result
         }
         return 'No sub available to remove'
     }
     async cancelMinistraSub(id:string) {
         const user = await this.userModel.findById(id)
-        const isUserSubbed = await this.payService.isUserSubed(user.login,'orderId')
+        const isUserSubbed = await this.payService.isUserSubed(user.email,'orderId')
         if(typeof isUserSubbed == 'string') {
-            const result = await this.payService.cancelSubscription(user.login, user.password, false)
+            const result = await this.payService.cancelSubscription(user.email, user.password, false)
             return result
         }
         return 'No sub available to remove'

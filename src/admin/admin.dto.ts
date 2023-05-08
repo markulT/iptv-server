@@ -1,10 +1,10 @@
 export class AdminDto {
-    login;
+    email;
     role;
     id;
     fullName;
     constructor(model) {
-        this.login = model.login
+        this.email = model.email
         this.id = model._id
         this.role = model.role
         this.fullName = model.fullName

@@ -4,8 +4,6 @@ export class createUserDto {
     @IsEmail()
     email: string
 
-    login:string
-
     @Length(8, 32)
     password: string
 

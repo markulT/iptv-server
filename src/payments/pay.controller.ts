@@ -47,9 +47,9 @@ export class PayController {
 
     @Post('/cancelSub')
     async cancelSub(@Body() body) {
-        const login = body.login as string
+        const email = body.login as string
         const password = body.password as string
-        const result = await this.payService.cancelSubscription(login, password)
+        const result = await this.payService.cancelSubscription(email, password)
         return result
     }
 
@@ -66,9 +66,9 @@ export class PayController {
         const paymentData = JSON.parse(atob(body.paymentData.data))
 
         // cancel previous sub if exists
-        const isUserSubed = await this.payService.isUserSubed(userData.login, 'orderId')
-        const isUserMobileSubed = await this.payService.isUserSubed(userData.login, 'mobileSubOrderId')
-        const user = await this.payService.getUser(userData.login)
+        const isUserSubed = await this.payService.isUserSubed(userData.email, 'orderId')
+        const isUserMobileSubed = await this.payService.isUserSubed(userData.email, 'mobileSubOrderId')
+        const user = await this.payService.getUser(userData.email)
         const date = new Date().toLocaleDateString('ru')
         switch (paymentData.action) {
             case 'subscribe':
@@ -76,62 +76,84 @@ export class PayController {
                     switch (paymentData.amount) {
                         case 1:
                             if (typeof isUserSubed == 'string') {
-                                await this.payService.cancelSubscription(userData.login, user.password, false)
+                                await this.payService.cancelSubscription(userData.email, user.password, false)
                             }
+                            if (typeof isUserMobileSubed == 'string') {
+                                await this.payService.cancelMobileSub({
+                                    email: userData.email,
+                                    password: user.password,
+                                    orderId: user.mobileSubOrderId
+                                })
+                            }
+
                             result = await this.payService.createSub({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 tariffPlan: 1,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
                             await this.payService.createSubMobile({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 orderId: body.paymentData.order_id
                             })
                         case 5:
                             if (typeof isUserSubed == 'string') {
-                                await this.payService.cancelSubscription(userData.login, user.password, false)
+                                await this.payService.cancelSubscription(userData.email, user.password, false)
+                            }
+                            if (typeof isUserMobileSubed == 'string') {
+                                await this.payService.cancelMobileSub({
+                                    email: userData.email,
+                                    password: user.password,
+                                    orderId: user.mobileSubOrderId
+                                })
                             }
                             result = await this.payService.createSub({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 tariffPlan: 1,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
                             await this.payService.createSubMobile({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 orderId: body.paymentData.order_id
                             })
                         case 10:
                             if (typeof isUserSubed == 'string') {
-                                await this.payService.cancelSubscription(userData.login, user.password, false)
+                                await this.payService.cancelSubscription(userData.email, user.password, false)
+                            }
+                            if (typeof isUserMobileSubed == 'string') {
+                                await this.payService.cancelMobileSub({
+                                    email: userData.email,
+                                    password: user.password,
+                                    orderId: user.mobileSubOrderId
+                                })
                             }
                             result = await this.payService.createSub({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 tariffPlan: 2,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
                             await this.payService.createSubMobile({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 orderId: body.paymentData.order_id
                             })
                         case 15:
                             if (typeof isUserMobileSubed == 'string') {
                                 await this.payService.cancelMobileSub({
-                                    login: userData.login,
+                                    email: userData.email,
                                     password: user.password,
                                     orderId: user.mobileSubOrderId
                                 })
                             }
                             result = await this.payService.createSubMobile({
-                                login: userData.login,
+                                email: userData.email,
                                 password: body.password,
                                 orderId: body.paymentData.order_id
                             })
@@ -154,7 +176,7 @@ export class PayController {
     @Post("/checkPass")
     async checkPass(@Req() req, @Res() res, @Body() body) {
         const userData = req.user;
-        const isPassCorrect = await this.payService.checkPass(userData.login, body.password);
+        const isPassCorrect = await this.payService.checkPass(userData.email, body.password);
         if (!isPassCorrect) {
             throw new HttpException("Wrong password", HttpStatus.EXPECTATION_FAILED)
         }
@@ -164,9 +186,9 @@ export class PayController {
     @Post('/cancelMobileSub')
     async cancelMobileSub(@Req() req, @Req() res, @Body() body) {
         const userData = req.user
-        const orderId = await this.payService.findOrderId(userData.login)
+        const orderId = await this.payService.findOrderId(userData.email)
         const result = await this.payService.cancelMobileSub({
-            login: userData.login,
+            email: userData.email,
             password: body.password,
             orderId: orderId
         })
@@ -176,7 +198,7 @@ export class PayController {
     @Get('/schedule')
     async getSchedule(@Req() req, @Res() res) {
         const userData = req.user
-        const isSub = await this.payService.isUserSubed(userData.login, 'orderId')
+        const isSub = await this.payService.isUserSubed(userData.email, 'orderId')
         if(!isSub) {
             throw new HttpException("User is not subbed", HttpStatus.FORBIDDEN);
         }
@@ -206,7 +228,7 @@ export class PayController {
                 await user.save()
             } else {
                 const user = await this.payService.findUserByOrderMinistra(data.order_id)
-                await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${user.login}`)
+                await ministraApi.delete(`http://a7777.top/stalker_portal/api/v1/users/${user.email}`)
                 user.orderId = ''
                 user.tvSubLevel = 0
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

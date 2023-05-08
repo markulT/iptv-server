@@ -14,15 +14,13 @@ export class MinistraController {
     async changeMacAddress(@Body() body, @Res({passthrough: true}) res: Response, @Req() req) {
 
         const user = req.user
-        console.log('bobr')
-        console.log(user.login)
-        const login = body.login
+        const email = body.email
 
-        if (user.login != login) {
+        if (user.email != email) {
             throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
         }
 
-        const response = await this.ministraService.changeMacAddesss(body, user.login)
+        const response = await this.ministraService.changeMacAddesss(body, user.email)
         if (response.status == 403) {
             res.status(HttpStatus.FORBIDDEN).send()
         }

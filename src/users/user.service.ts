@@ -222,7 +222,7 @@ export class UserService {
         return users
     }
     async getProfile(userData) {
-        const user = await this.userModel.findOne({login:userData.login})
+        const user = await this.userModel.findOne({email:userData.email})
 
         const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${user.email}`, {
             method: "GET",

@@ -91,6 +91,42 @@ export class PayService {
         return result
     }
 
+    async createTestSub({email, password, tariffPlan}) {
+        const accountNumber = uuid.v4()
+        const status = 1
+        let result
+
+
+        const user = await this.userModel.findOne({email})
+        const fullName = user.fullName
+        if (!user) {
+            throw new Error('User does not exist')
+        }
+        // const isPassEquals = await bcrypt.compare(password, user.password)
+        // if (!isPassEquals) {
+        //     throw new Error('Incorrect password')
+        // }
+
+        const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
+        const requestStatus = userExists.data.status
+        const date = new Date().toLocaleDateString('ru')
+        if (requestStatus == "ERROR") {
+            // result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`,{
+            //     login:`${login}`,
+            //     password:`${password}`,
+            //     full_name:`${fullName}`,
+            //     account_number:`${accountNumber}`,
+            //     tariff_plan:`${tariffPlan}`,
+            //     status:`${status}`
+            // })
+            result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`, `login=${email}&password=${password}&full_name=${fullName}&account_number=${accountNumber}&tariff_plan=${tariffPlan}&status=${status}`).then(res => res.data)
+            user.tvSubLevel = tariffPlan
+            user.ministraDate = date
+            await user.save()
+        }
+        return result
+    }
+
     async cancelSubscription(email: string, password: string, check = true) {
         const user = await this.userModel.findOne({email})
         const isPassCorrrect = await bcrypt.compare(password, user.password)

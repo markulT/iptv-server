@@ -44,10 +44,16 @@ export class PayController {
         return result
     }
 
+    @Post('/createTestSub')
+    async createTestSub(@Body() body) {
+        const result = await this.payService.createTestSub(body)
+        return result
+    }
+
 
     @Post('/cancelSub')
     async cancelSub(@Body() body) {
-        const email = body.login as string
+        const email = body.email as string
         const password = body.password as string
         const result = await this.payService.cancelSubscription(email, password)
         return result

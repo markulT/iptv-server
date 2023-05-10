@@ -18,8 +18,8 @@ type $FixMe = any
 export type loginData = {
     accessToken:string,
     refreshToken:string
-    user:typeof UserDto,
-    fullProfile:$FixMe
+    user:UserDto,
+    fullProfile?:$FixMe
 }
 
 export type findUserType = {
@@ -48,11 +48,11 @@ export class UserService {
             throw new HttpException("User already exists", HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
-        const uniqueEmail = await this.userModel.findOne({email})
-
-        if(uniqueEmail?.isActivated) {
-            throw new Error(`User with email ${email} already exists`)
-        }
+        // const uniqueEmail = await this.userModel.findOne({email})
+        //
+        // if(uniqueEmail?.isActivated) {
+        //     throw new Error(`User with email ${email} already exists`)
+        // }
         // create user
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
@@ -70,15 +70,14 @@ export class UserService {
             }
         })
 
+
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
-        await this.mailService.sendActivationEmail(email, activationLink)
+        // await this.mailService.sendActivationEmail(email, activationLink)
         const tokens = this.tokenService.generateToken({ ...userDto })
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-
+        console.log()
         return {
             ...tokens,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             user: userDto
         }
     }
@@ -105,11 +104,8 @@ export class UserService {
 
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log(userDto)
         return {
             ...tokens,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             user: userDto,
             fullProfile: jsonUserMinistra
         }

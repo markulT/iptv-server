@@ -21,6 +21,8 @@ export class UserController {
     @Post('/registration')
     async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response):Promise<responseAuth> {
         try {
+
+            console.log(createUserDto)
             // getting user data
             const password = createUserDto.password
             const fullName = createUserDto.fullName
@@ -31,6 +33,8 @@ export class UserController {
 
             const userData = await this.userService.registration(password, fullName, email, phone, address)
             response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
+            console.log('aboba')
+            console.log(userData)
             return {
                 userData
             }
@@ -45,6 +49,7 @@ export class UserController {
     @Post('/login')
     async login(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) res):Promise<responseAuth> {
 
+        console.log(createUserDto)
 
         // getting request`s body data
         const email = createUserDto.email

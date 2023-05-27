@@ -204,4 +204,9 @@ export class ChannelManagementController {
         return await this.channelManagementService.getAllChannelsMinistra();
     }
 
+    @Get("/image")
+    public async getImageMinistra(@Query() query) {
+        return await this.channelManagementService.getImage(query.imgName, query.channelId);
+    }
+
 }

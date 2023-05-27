@@ -166,4 +166,21 @@ export class ChannelManagementService {
 
     }
 
+    async getImage(imgName:string, channelId:string) {
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+        const url = `http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`
+        console.log(url)
+        const responseImage = await axios.get(`http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+        return responseImage.data
+
+    }
+
 }

@@ -83,6 +83,7 @@ export class UserService {
     }
 
     async login(email, password):Promise<loginData> {
+        console.log(email, password)
         const user = await this.userModel.findOne({ email })
         if (!user) {
             throw new Error('User does not exist')

@@ -79,6 +79,8 @@ export class UserController {
     async refresh(@Req() req, @Res({passthrough:true}) res) {
 
         const { refreshToken } = req.cookies
+        console.log("OMG WTF IS THIS")
+        console.log(refreshToken)
 
         const userData = await this.userService.refresh(refreshToken)
 

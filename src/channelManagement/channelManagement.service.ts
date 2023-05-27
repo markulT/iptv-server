@@ -5,9 +5,21 @@ import {Model} from "mongoose";
 import {ChannelPropEnum} from "../dtos/channel.dto";
 // const Binary = require("mongodb").Binary
 import {Binary} from 'mongodb'
+import axios from "axios";
+
+interface Genre {
+    title:string,
+    id:string
+}
 
 @Injectable()
 export class ChannelManagementService {
+
+    private instance = axios.create({
+        baseURL:'',
+        withCredentials:true
+    })
+
     constructor(
         @InjectModel(Channel.name) private readonly channelModel:Model<ChannelDocument>
     ) {
@@ -45,7 +57,6 @@ export class ChannelManagementService {
     }
 
     async findChannelById(id):Promise<Channel> {
-        console.log(id)
         const channel = await this.channelModel.findById(id)
         return channel
     }
@@ -59,6 +70,100 @@ export class ChannelManagementService {
     async getLength() {
         const length = await this.channelModel.count()
         return length
+    }
+
+    async getToken(ipRequest:string) {
+
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+        const responseChannels = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+
+        const channelList = responseChannels.data.js.data;
+        console.log(channelList[1])
+        let getUrl = `http://a7777.top/stalker_portal/server/load.php?type=itv&action=create_link&cmd=${channelList[1].cmds[0].url.replace(' ', '%20')}&disable_ad=0&download=0&JsHttpRequest=1-xml`
+        console.log(getUrl);
+        const url = await axios.get(getUrl, {
+            headers: {
+                'Authorization':`Bearer ${token}`,
+                'Cookie':`mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+        console.log(url.data.js.cmd)
+
+
+
+        // console.log(channelList)
+
+        return null;
+    }
+
+    async wtf() {
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+        // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml
+        // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_ordered_list&JsHttpRequest=1-xml
+        const responseGenres = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+        console.log(responseGenres.data.js)
+    }
+
+    async getAllGenres() {
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+        // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml
+        const responseGenres = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+        return responseGenres.data.js.map(genre=>{return {title:genre.title, id:genre.id}});
+    }
+
+    async getAllChannelsMinistra() {
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+        const responseChannels = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+        return responseChannels.data.js.data;
+    }
+
+    async getChannelsByGenre(genreId:string) {
+        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
+
+        const responseChannels = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=1&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            }
+        })
+
+        return responseChannels.data.js.data;
+
     }
 
 }

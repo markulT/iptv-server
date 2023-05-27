@@ -180,4 +180,28 @@ export class ChannelManagementController {
         return channel
     }
 
+    @Get("/test")
+    public async test(@Req() req) {
+        const ipRequest = req.header('x-forwarded-for')
+        // await this.channelManagementService.getToken(ipRequest);
+        await this.channelManagementService.wtf();
+        return '';
+    }
+
+    @Get("/genres/all")
+    public async getAllGenres() {
+        return await this.channelManagementService.getAllGenres();
+    }
+
+    @Get("/channel/:id")
+    public async getChannelsByGenre(@Param() param) {
+
+        return await this.channelManagementService.getChannelsByGenre(param.id);
+    }
+
+    @Get("/channel/all")
+    public async getAllChannels() {
+        return await this.channelManagementService.getAllChannelsMinistra();
+    }
+
 }

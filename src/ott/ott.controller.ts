@@ -38,7 +38,7 @@ export class OttController {
     @Get('/stream')
     async getStream(@Req() req, @Res({passthrough:true}) res) {
         const userData = req.user
-        const userFromDB = await this.userModel.findOne({login:userData.login})
+        const userFromDB = await this.userModel.findOne({email:userData.email})
         if(!userFromDB.mobileSubExists || !userFromDB.mobileSubOrderId) {
             throw new HttpException("Please buy a subscription first",HttpStatus.FORBIDDEN)
         }
@@ -49,6 +49,8 @@ export class OttController {
 
         return streamLink
     }
+
+
 
     // @Get('/stream')
     // async getStream(@Req() req: Request,@Res({passthrough:true}) res:Response) {

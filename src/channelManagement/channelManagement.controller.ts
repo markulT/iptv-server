@@ -190,6 +190,7 @@ export class ChannelManagementController {
 
     @Get("/genres/all")
     public async getAllGenres() {
+
         return await this.channelManagementService.getAllGenres();
     }
 
@@ -199,8 +200,9 @@ export class ChannelManagementController {
         return await this.channelManagementService.getChannelsByGenre(param.id);
     }
 
-    @Get("/channel/all")
+    @Get("/all")
     public async getAllChannels() {
+
         return await this.channelManagementService.getAllChannelsMinistra();
     }
 

@@ -136,6 +136,7 @@ export class ChannelManagementService {
     }
 
     async getAllChannelsMinistra() {
+        console.log('b')
         const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
@@ -146,6 +147,8 @@ export class ChannelManagementService {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
             }
         })
+        console.log('supposed to be here')
+        console.log(responseChannels.data)
         return responseChannels.data.js.data;
     }
 

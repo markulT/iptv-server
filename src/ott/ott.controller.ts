@@ -43,12 +43,17 @@ export class OttController {
             throw new HttpException("Please buy a subscription first",HttpStatus.FORBIDDEN)
         }
 
+
+
         const {stream} = req.query
         const ipRequest = req.header('x-forwarded-for')
-        const streamLink = await this.instance.get(`https://testsoft.xyz/video.php?stream=${stream}&ipaddr=${ipRequest}`).then(res=>res.data)
+        const realName = await this.ottService.getStreamUrl(stream)
+        const streamLink = await this.instance.get(`https://testsoft.xyz/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)
 
         return streamLink
     }
+
+
 
 
 

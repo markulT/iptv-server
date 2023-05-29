@@ -175,7 +175,6 @@ export class ChannelManagementService {
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
         const url = `http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`
-        console.log(url)
         const responseImage = await axios.get(`http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

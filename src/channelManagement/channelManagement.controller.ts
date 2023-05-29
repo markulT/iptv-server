@@ -28,6 +28,7 @@ import {of} from "rxjs";
 import {v4 as uuidv4} from 'uuid'
 import * as fs from "fs";
 import {log} from "util";
+import axios from "axios";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path")
 
@@ -207,8 +208,23 @@ export class ChannelManagementController {
     }
 
     @Get("/image")
-    public async getImageMinistra(@Query() query) {
-        return await this.channelManagementService.getImage(query.imgName, query.channelId);
+    public async getImageMinistra(@Query() query, @Res() response) {
+        // return await this.channelManagementService.getImage(query.imgName, query.channelId);
+        // const data = await this.channelManagementService.getImage(query.imgName, query.channelId);
+        const tokenRes = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = tokenRes.data.js.token;
+        const random:string = tokenRes.data.js.random;
+
+        const responseImage = await axios.get(`http://a7777.top/stalker_portal/misc/logos/${query.channelId}/${query.imgName}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+            },
+            responseType:"arraybuffer"
+        })
+        response.setHeader('Content-Type', 'image/gif');
+        response.send(responseImage.data)
     }
 
 

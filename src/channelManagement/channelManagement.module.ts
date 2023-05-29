@@ -1,4 +1,4 @@
-import {MiddlewareConsumer, Module, NestModule} from "@nestjs/common";
+import {MiddlewareConsumer, Module, NestModule, RequestMethod} from "@nestjs/common";
 import {authMiddleware} from "../middlewares/auth-middleware";
 import {MongooseModule} from "@nestjs/mongoose";
 import {Admin, AdminSchema} from "../admin/admin.schema";
@@ -36,6 +36,9 @@ export class ChannelManagementModule implements NestModule{
     configure(consumer: MiddlewareConsumer){
         consumer
             .apply(authMiddleware)
+            .exclude(
+                {path:'/channelManagement/image', method:RequestMethod.GET}
+            )
             .forRoutes(ChannelManagementController)
     }
 }

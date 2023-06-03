@@ -33,6 +33,6 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-  await app.listen(process.env.PORT || 8082);
+  await app.listen(process.env.CURRENT_SERVER_URL || 8082);
 }
 bootstrap();

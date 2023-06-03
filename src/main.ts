@@ -10,6 +10,15 @@ const corsOptions = {
   optionsSuccessStatus:200
 }
 
+function getAllowedOrigins() {
+  if(process.env.NODE_ENV == 'production') {
+    return ['https://maximum-ott.com','https://www.maximum-ott.com/','https://crm-deploy.vercel.app','https://client-deploy-three.vercel.app', '54.229.105.178', '54.229.105.179','34.255.91.122','34.253.252.244','54.171.60.13', '217.117.76.0/24']
+  } else {
+    return 'http://localhost:3000';
+  }
+}
+
+
 async function bootstrap() {
   Sentry.init({
     dsn:'https://0dd191edf3cf4208ae1029f1eccbb017@o4504176695902208.ingest.sentry.io/4504176705929216'
@@ -18,7 +27,7 @@ async function bootstrap() {
   app.use(helmet())
   app.use(cookieParser())
   app.enableCors({
-    origin:'http://localhost:3000',
+    origin:getAllowedOrigins(),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -74,25 +74,25 @@ export class ChannelManagementService {
 
     async getToken(ipRequest:string) {
 
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
-        const responseChannels = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+        const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
 
         const channelList = responseChannels.data.js.data;
         console.log(channelList[1])
-        let getUrl = `http://a7777.top/stalker_portal/server/load.php?type=itv&action=create_link&cmd=${channelList[1].cmds[0].url.replace(' ', '%20')}&disable_ad=0&download=0&JsHttpRequest=1-xml`
+        let getUrl = `http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=create_link&cmd=${channelList[1].cmds[0].url.replace(' ', '%20')}&disable_ad=0&download=0&JsHttpRequest=1-xml`
         console.log(getUrl);
         const url = await axios.get(getUrl, {
             headers: {
                 'Authorization':`Bearer ${token}`,
-                'Cookie':`mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie':`mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
         console.log(url.data.js.cmd)
@@ -105,31 +105,31 @@ export class ChannelManagementService {
     }
 
     async wtf() {
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
         // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml
         // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_ordered_list&JsHttpRequest=1-xml
-        const responseGenres = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+        const responseGenres = await axios.get(`http://MINISTRA_DEBUG_KEY/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
         console.log(responseGenres.data.js)
     }
 
     async getAllGenres() {
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
         // http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml
-        const responseGenres = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml', {
+        const responseGenres = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
         return responseGenres.data.js.map(genre=>{return {title:genre.title, id:genre.id}});
@@ -137,31 +137,30 @@ export class ChannelManagementService {
 
     async getAllChannelsMinistra() {
         console.log('b')
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
-        const responseChannels = await axios.get('http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml', {
+        const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
-        console.log('supposed to be here')
-        console.log(responseChannels.data)
+
         return responseChannels.data.js.data;
     }
 
     async getChannelsByGenre(genreId:string) {
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
 
-        const responseChannels = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=1&JsHttpRequest=1-xml`, {
+        const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=1&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
 
@@ -170,16 +169,15 @@ export class ChannelManagementService {
     }
 
     async getImage(imgName:string, channelId:string) {
-        const response = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
         const random:string = response.data.js.random;
-        const url = `http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`
-        console.log(url)
-        const responseImage = await axios.get(`http://a7777.top/stalker_portal/misc/logos/${channelId}/${imgName}`, {
+        const url = `http://${process.env.MINISTRA_PORTAL}/stalker_portal/misc/logos/${channelId}/${imgName}`
+        const responseImage = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/misc/logos/${channelId}/${imgName}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
 

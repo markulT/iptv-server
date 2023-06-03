@@ -211,15 +211,15 @@ export class ChannelManagementController {
     public async getImageMinistra(@Query() query, @Res() response) {
         // return await this.channelManagementService.getImage(query.imgName, query.channelId);
         // const data = await this.channelManagementService.getImage(query.imgName, query.channelId);
-        const tokenRes = await axios.get(`http://a7777.top/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = tokenRes.data.js.token;
         const random:string = tokenRes.data.js.random;
 
-        const responseImage = await axios.get(`http://a7777.top/stalker_portal/misc/logos/${query.channelId}/${query.imgName}`, {
+        const responseImage = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/misc/logos/${query.channelId}/${query.imgName}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=43175a1409edce30dbcf6aa2bb8b182f`
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
             responseType:"arraybuffer"
         })

@@ -1,0 +1,40 @@
+
+name: SSH Connection
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Connect to remote server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd apps/
+            rm -r iptv-server
+            git clone https://github.com/markulT/iptv-server.git
+            cd iptv-server/
+            git config user.name "GitHub Actions"
+            git config user.email "<>"
+            git config --local credential.helper store
+            git config --local credential.https://github.com.username ${{ secrets.GITHUB_TOKEN }}
+            git pull
+            npm i
+            npm run build
+            NODE_ENV=production pm2 start npm --name strapi -- run start:prod
+            
+            # Run commands on the remote server
+            echo "Connected to remote server via SSH"
+            # Add your commands here
+            # Example: ls -al

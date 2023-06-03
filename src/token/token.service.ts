@@ -16,7 +16,7 @@ export class TokenService {
     }
 
     generateToken(payload) {
-        const accessToken = jwt.sign(payload, this.configService.get('JWT_ACCESS_SECRET'), {expiresIn: '30m'})
+        const accessToken = jwt.sign(payload, this.configService.get('JWT_ACCESS_SECRET'), {expiresIn: '1h'})
         const refreshToken = jwt.sign(payload, this.configService.get('JWT_REFRESH_SECRET'), {expiresIn: '30d'})
         return {
             accessToken,

@@ -31,6 +31,9 @@ jobs:
             git config --local credential.helper store
             git config --local credential.https://github.com.username ${{ secrets.GITHUB_TOKEN }}
             git pull
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            sudo ln -s "$NVM_DIR/versions/node/v16.10.0/bin/pm2" "/usr/local/bin/pm2"
             npm i
             npm run build
             pm2 kill

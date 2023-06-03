@@ -11,6 +11,7 @@ const corsOptions = {
 }
 
 function getAllowedOrigins() {
+  console.log(process.env.NODE_ENV)
   if(process.env.NODE_ENV == 'production') {
     return ['https://maximum-ott.com','https://www.maximum-ott.com/','https://crm-deploy.vercel.app','https://client-deploy-three.vercel.app', '54.229.105.178', '54.229.105.179','34.255.91.122','34.253.252.244','54.171.60.13', '217.117.76.0/24']
   } else {

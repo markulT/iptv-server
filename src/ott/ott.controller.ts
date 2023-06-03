@@ -9,7 +9,6 @@ import {InjectModel} from "@nestjs/mongoose";
 import {Model} from "mongoose";
 import {User, UserDocument} from "../users/user.schema";
 import {ConfigService} from "@nestjs/config";
-import request from "superagent";
 
 
 function bin2hex(s){	// Convert binary data into hexadecimal representation
@@ -53,10 +52,10 @@ export class OttController {
         const realName = await this.ottService.getStreamUrl(stream)
         console.log(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`)
         /*const streamLink = await this.instance.get(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)*/
-        const streamLink = await request.post(`${this.configService.get<string>('OTT_SERVER')}/video.php`).send({
+        const streamLink = await axios.post(`${this.configService.get<string>('OTT_SERVER')}/video.php`, {
             stream:`${realName}`,
             ip:`${ipRequest}`
-        }).then(res=>res.body)
+        }).then(res=>res.data)
         console.log(streamLink)
         // ab
         return streamLink

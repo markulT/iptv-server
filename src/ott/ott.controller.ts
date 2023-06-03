@@ -52,7 +52,7 @@ export class OttController {
         const realName = await this.ottService.getStreamUrl(stream)
         console.log(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`)
         /*const streamLink = await this.instance.get(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)*/
-        const streamLink = await this.instance.post(`${this.configService.get<string>('OTT_SERVER')}/video.php`, {
+        const streamLink = await axios.post(`${this.configService.get<string>('OTT_SERVER')}/video.php`, {
             stream:realName,
             ip:ipRequest
         }).then(res=>res.data)

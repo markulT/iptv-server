@@ -8,6 +8,7 @@ import axios, {Axios} from 'axios'
 import {InjectModel} from "@nestjs/mongoose";
 import {Model} from "mongoose";
 import {User, UserDocument} from "../users/user.schema";
+import {ConfigService} from "@nestjs/config";
 
 
 function bin2hex(s){	// Convert binary data into hexadecimal representation
@@ -26,7 +27,8 @@ function bin2hex(s){	// Convert binary data into hexadecimal representation
 export class OttController {
     constructor(
         private ottService: OttService,
-        @InjectModel(User.name) private readonly userModel: Model<UserDocument>
+        @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+        private configService:ConfigService
     ) {
     }
 
@@ -49,7 +51,7 @@ export class OttController {
         const ipRequest = req.header('x-forwarded-for')
         const realName = await this.ottService.getStreamUrl(stream)
         console.log(`${process.env.OTT_SERVER}/stream.php?stream=${realName}&ipaddr=${ipRequest}`)
-        const streamLink = await this.instance.get(`${process.env.OTT_SERVER}/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)
+        const streamLink = await this.instance.get(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)
         // a
         return streamLink
     }

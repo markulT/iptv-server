@@ -24,10 +24,10 @@ jobs:
           script: |
             cd apps/
             rm -r iptv-server
-            git clone https://github.com/markulT/iptv-server.git
-            cd iptv-server/
             git config user.name "GitHub Actions"
             git config user.email "<>"
+            git clone https://markulT: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@github.com/markulT/iptv-server.git
+            cd iptv-server/
             git config --local credential.helper store
             git config --local credential.https://github.com.username ${{ secrets.GITHUB_TOKEN }}
             git pull

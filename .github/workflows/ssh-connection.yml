@@ -33,9 +33,5 @@ jobs:
             git pull
             npm i
             npm run build
+            pm2 kill
             NODE_ENV=production pm2 start npm --name strapi -- run start:prod
-            
-            # Run commands on the remote server
-            echo "Connected to remote server via SSH"
-            # Add your commands here
-            # Example: ls -al

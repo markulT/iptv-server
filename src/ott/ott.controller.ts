@@ -48,7 +48,8 @@ export class OttController {
         const {stream} = req.query
         const ipRequest = req.header('x-forwarded-for')
         const realName = await this.ottService.getStreamUrl(stream)
-        const streamLink = await this.instance.get(`${process.env.OTT_SERVER}/stream.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)
+        console.log(`${process.env.OTT_SERVER}/stream.php?stream=${realName}&ipaddr=${ipRequest}`)
+        const streamLink = await this.instance.get(`${process.env.OTT_SERVER}/video.php?stream=${realName}&ipaddr=${ipRequest}`).then(res=>res.data)
         // a
         return streamLink
     }

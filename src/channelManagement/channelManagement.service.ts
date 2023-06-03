@@ -180,7 +180,7 @@ export class ChannelManagementService {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
-
+        // a
         return responseImage.data
 
     }

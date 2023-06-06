@@ -78,7 +78,7 @@ export class TokenService {
     }
 
     async findToken(refreshToken) {
-        const userData = await this.tokenModel.findOne({refreshToken: refreshToken})
+        const userData = await this.tokenModel.findOne({refreshToken: {$in:[refreshToken]}})
         return userData
     }
 }

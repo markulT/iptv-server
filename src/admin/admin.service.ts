@@ -86,7 +86,7 @@ export class AdminService {
         const adminDto = new AdminDto(admin)
         const tokens = this.tokenService.generateToken({...adminDto})
 
-        await this.tokenService.saveToken(adminDto.id, tokens.refreshToken)
+        await this.tokenService.saveToken(adminDto.id, tokens.refreshToken, refreshToken)
         return {
             ...tokens,
             admin:adminDto

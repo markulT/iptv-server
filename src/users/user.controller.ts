@@ -33,8 +33,6 @@ export class UserController {
 
             const userData = await this.userService.registration(password, fullName, email, phone, address)
             response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
-            console.log('aboba')
-            console.log(userData)
             return {
                 userData
             }

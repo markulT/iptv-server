@@ -38,7 +38,7 @@ export class TokenService {
                 })
                 await tokenData.save()
                 return
-            } else if (tokenData.refreshToken.length >= 2) {
+            } else if (tokenData.refreshToken.length >= 5) {
                 console.log('push')
                 tokenData.refreshToken.pop()
                 tokenData.refreshToken.unshift(refreshToken)

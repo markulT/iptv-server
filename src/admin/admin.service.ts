@@ -37,7 +37,8 @@ export class AdminService {
         return 'works'
     }
     async register(email:string, password:string,fullName:string, role:RoleEnum):Promise<SuccessResponse> {
-        const candidate = await this.adminModel.findOne({email})
+        const candidate = await this.adminModel.findOne({email:email})
+        console.log(candidate)
         if(candidate) {
             throw new HttpException('User already exists',HttpStatus.NOT_ACCEPTABLE)
         }

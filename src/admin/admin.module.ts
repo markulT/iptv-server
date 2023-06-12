@@ -14,6 +14,12 @@ import {User, UserSchema} from "../users/user.schema";
 import {JwtService} from "@nestjs/jwt";
 import {MailService} from "../mail/mail.service";
 import {PayService} from "../payments/pay.service";
+import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
+import {SessionAuth, SessionAuthSchema} from "../socket/sessionAuth.schema";
+import {SocketModule} from "@nestjs/websockets/socket-module";
+import {SocketIOModule} from "../socket/socket.module";
+import {SocketGateway} from "../socket/socket.gateway";
+import {AuthModule} from "../auth/auth.module";
 
 
 @Module({
@@ -21,11 +27,15 @@ import {PayService} from "../payments/pay.service";
         MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
+        MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
         TokenModule,
-        CaslModule
+        CaslModule,
+        SocketModule,
+        SocketIOModule,
+        AuthModule
     ],
     controllers:[AdminController],
-    providers:[AdminService, TokenService, ConfigService, UserService, JwtService, MailService, PayService]
+    providers:[AdminService, TokenService, ConfigService, UserService, JwtService, MailService, PayService, SocketServerProvider, SocketGateway]
 })
 export class AdminModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {

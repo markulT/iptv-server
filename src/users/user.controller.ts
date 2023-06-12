@@ -21,8 +21,6 @@ export class UserController {
     @Post('/registration')
     async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response):Promise<responseAuth> {
         try {
-
-            console.log(createUserDto)
             // getting user data
             const password = createUserDto.password
             const fullName = createUserDto.fullName
@@ -77,6 +75,8 @@ export class UserController {
     async refresh(@Req() req, @Res({passthrough:true}) res) {
 
         const { refreshToken } = req.cookies
+        console.log("refresh token is")
+        console.log(refreshToken)
 
         const userData = await this.userService.refresh(refreshToken)
 
@@ -128,5 +128,17 @@ export class UserController {
             fullProfile
         }
     }
+
+    @Post('/submitTvAuth')
+    async submitTvAuth(@Req() req, @Body() body) {
+        const userData = req.user
+        const authCode = body.authCode
+        console.log(userData)
+        this.userService.submitTvAuthCode(authCode, userData.email)
+        return null
+    }
+
+
+
 }
 

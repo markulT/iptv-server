@@ -17,6 +17,10 @@ import {MailService} from "../mail/mail.service";
 import {Channel, ChannelSchema} from "./channelManagement.schema";
 import {PayService} from "../payments/pay.service";
 import {MulterModule} from "@nestjs/platform-express";
+import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
+import {SessionAuth, SessionAuthSchema} from "../socket/sessionAuth.schema";
+import {SocketModule} from "@nestjs/websockets/socket-module";
+import {SocketIOModule} from "../socket/socket.module";
 
 
 @Module({
@@ -26,10 +30,13 @@ import {MulterModule} from "@nestjs/platform-express";
         MongooseModule.forFeature([{ name: Channel.name, schema: ChannelSchema }]),
         CaslModule,
         MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
+        MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
         TokenModule,
-        MulterModule.register({dest:"./files"})
+        MulterModule.register({dest:"./files"}),
+        SocketModule,
+        SocketIOModule
     ],
-    providers:[UserService,ChannelManagementService, AdminService, JwtService, TokenService, ConfigService, MailService, PayService],
+    providers:[UserService,ChannelManagementService, AdminService, JwtService, TokenService, ConfigService, MailService, PayService, SocketServerProvider],
     controllers:[ChannelManagementController]
 })
 export class ChannelManagementModule implements NestModule{

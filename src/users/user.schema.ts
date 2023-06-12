@@ -58,6 +58,10 @@ export class User {
 
     @Prop({default:"Неизвестно"})
     signDate:string
+
+    @Prop()
+    tvAuthCode:string
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

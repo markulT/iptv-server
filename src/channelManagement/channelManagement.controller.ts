@@ -227,5 +227,4 @@ export class ChannelManagementController {
         response.send(responseImage.data)
     }
 
-
 }

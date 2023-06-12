@@ -38,3 +38,4 @@ jobs:
             npm run build
             pm2 delete strapi
             NODE_ENV=production pm2 start npm --name strapi -- run start:prod
+            pm2 status

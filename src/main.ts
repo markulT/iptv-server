@@ -15,6 +15,7 @@ function getAllowedOrigins() {
   if(process.env.NODE_ENV == 'production') {
     return ['https://maximum-ott.com','https://www.maximum-ott.com/','https://crm-deploy.vercel.app','https://client-deploy-three.vercel.app', '54.229.105.178', '54.229.105.179','34.255.91.122','34.253.252.244','54.171.60.13', '217.117.76.0/24']
   } else {
+    console.log('another')
     return 'http://localhost:3000';
   }
 }
@@ -28,7 +29,7 @@ async function bootstrap() {
   app.use(helmet())
   app.use(cookieParser())
   app.enableCors({
-    origin:getAllowedOrigins(),
+    origin:'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

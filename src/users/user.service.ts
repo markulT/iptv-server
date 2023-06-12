@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService } from './../token/token.service';
 
 import { User, UserDocument } from './user.schema';
-import {Get, HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {Get, HttpException, HttpStatus, Inject, Injectable} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +12,10 @@ import * as uuid from 'uuid'
 import axios from 'axios';
 import {MailService} from "../mail/mail.service";
 import {type} from "os";
+// import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
+import {SessionAuth, SessionAuthDocument} from "../socket/sessionAuth.schema";
+import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
+import {SocketGateway} from "../socket/socket.gateway";
 
 type $FixMe = any
 
@@ -34,7 +38,10 @@ export class UserService {
         private jwtService: JwtService,
         private tokenService: TokenService,
         private configService: ConfigService,
-        private mailService: MailService
+        private mailService: MailService,
+        // private socketServerProvider: SocketServerProvider,
+        @InjectModel(SessionAuth.name) private readonly sessionAuthModel: Model<SessionAuthDocument>,
+        private readonly socketGateway:SocketGateway
     ) { }
     test() {
         return 'Hola comosta'
@@ -75,7 +82,6 @@ export class UserService {
         // await this.mailService.sendActivationEmail(email, activationLink)
         const tokens = this.tokenService.generateToken({ ...userDto })
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log()
         return {
             ...tokens,
             user: userDto
@@ -83,7 +89,6 @@ export class UserService {
     }
 
     async login(email, password):Promise<loginData> {
-        console.log(email, password)
         const user = await this.userModel.findOne({ email })
         if (!user) {
             throw new Error('User does not exist')
@@ -142,7 +147,9 @@ export class UserService {
         }
         const userData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
+        console.log(tokenFromDb)
         if (!userData || !tokenFromDb) {
+
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
         }
 
@@ -234,4 +241,45 @@ export class UserService {
             fullProfile:jsonUserMinistra
         }
     }
+
+    async generateTvAuthCode(
+        socketId:string
+    ):Promise<string> {
+        const randomAuthCode = uuid.v4()
+        await this.sessionAuthModel.create({authCode: randomAuthCode, sessionId: socketId})
+        return randomAuthCode;
+    }
+
+    async submitTvAuthCode(
+        randomAuthCode:string,
+        email:string
+    ) {
+        const user = await this.userModel.findOne({email:email})
+        const sessionAuth = await this.sessionAuthModel.findOne({authCode:randomAuthCode})
+
+        const userMinistra = await axios.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`, {
+            method: "GET",
+            headers: {
+                Authorization: 'Basic c3RhbGtlcjpKeGhmZ3ZiamU1OTRLU0pER0pETUtGR2ozOVpa'
+            }
+        })
+
+        const jsonUserMinistra = JSON.stringify(userMinistra?.data)
+
+        const userDto = new UserDto(user)
+
+        const tokens = this.tokenService.generateToken({ ...userDto })
+        await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
+        // console.log(await this.socketServerProvider)
+        // const socket = await this.socketServerProvider.scanForSocketServer({cors:{origin:"*"}}, this.configService.get("CURRENT_SERVER_URL")).server.sockets.sockets.get(sessionAuth.sessionId)
+        // console.log(socket)
+        // if(socket) {
+        //     socket.emit('session-closed', {
+        //         ...tokens,
+        //         user:userDto,
+        //         fullProfile: jsonUserMinistra
+        //     })
+        // }
+    }
+
 }

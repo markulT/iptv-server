@@ -8,12 +8,14 @@ import {TokenService} from "../token/token.service";
 import {Token, TokenSchema} from "../token/token.schema";
 import {TokenModule} from "../token/token.module";
 import {ConfigService} from "@nestjs/config";
+import {SocketModule} from "@nestjs/websockets/socket-module";
 
 @Module({
   imports:[
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
-    TokenModule
+    TokenModule,
+    SocketModule
   ],
   controllers: [OttController],
   providers: [OttService, TokenService, ConfigService]

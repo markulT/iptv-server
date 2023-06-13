@@ -9,17 +9,15 @@ import {
     Post,
     Put,
     Query,
-    Req, Res,
-    UploadedFile, UseInterceptors
+    Req,
+    Res,
+    UploadedFile,
+    UseInterceptors
 } from "@nestjs/common";
 import {ChannelManagementService} from "./channelManagement.service";
 import {Action, CaslAbilityFactory} from "../casl/casl-ability.factory";
 import {UserService} from "../users/user.service";
-import {ChannelPropEnum} from "../dtos/channel.dto";
 import {Channel} from "./channelManagement.schema";
-import {isSetIterator} from "util/types";
-import {Ability} from "@casl/ability";
-import {User} from "../users/user.schema";
 import {AdminService} from "../admin/admin.service";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {diskStorage} from "multer";
@@ -27,7 +25,6 @@ import {diskStorage} from "multer";
 import {of} from "rxjs";
 import {v4 as uuidv4} from 'uuid'
 import * as fs from "fs";
-import {log} from "util";
 import axios from "axios";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path")
@@ -227,23 +224,41 @@ export class ChannelManagementController {
         response.send(responseImage.data)
     }
 
-    @Get("/huynia")
-    public async getHuynia() {
+    @Get("/getSchedule:id")
+    public async getSchedule(@Param() par, @Req() req) {
+        const { date } = req.query;
+        const channelId = par.id;
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
-        const token:string = tokenRes.data.js.token;
-        const random:string = tokenRes.data.js.random;
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
 
-        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=19&date=2023-06-12&p=0&JsHttpRequest=1-xml`, {
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=${channelId}&date=${date}&p=1&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
-        })
+        });
 
-        return response.data
+        const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
+        console.log(pages);
+        const mergedData = [response.data["js"]["data"]];
+        console.log(mergedData);
 
+        for (let i = 2; i < pages; i++) {
+            const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=${channelId}&date=${date}&p=${i}&JsHttpRequest=1-xml`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+                },
+            });
+            mergedData.push(pageResponse.data["js"]["data"]);
+        }
+
+        return mergedData.flat();
     }
+
+
 
     @Get("/timecode")
     public async timecode(@Req() req) {

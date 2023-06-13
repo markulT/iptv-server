@@ -92,7 +92,7 @@ export class OttController {
 
         const token = await this.ottService.parseTokenFromUrl(archiveUrl)
 
-        const domain = this.configService.get("MINISTRA_PORTAL") ? this.configService.get("MINISTRA_PORTAL") : 'a7777.top'
+        const domain = 's1.mega-tv.online'
 
         const modifiedUrl = await this.ottService.replaceToken(archiveUrl, token).then(url=>this.ottService.replaceDomain(url, domain))
         console.log(modifiedUrl)

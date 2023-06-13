@@ -227,4 +227,40 @@ export class ChannelManagementController {
         response.send(responseImage.data)
     }
 
+    @Get("/huynia")
+    public async getHuynia() {
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = tokenRes.data.js.token;
+        const random:string = tokenRes.data.js.random;
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=19&date=2023-06-12&p=0&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        })
+
+        return response.data
+
+    }
+
+    @Get("/timecode")
+    public async timecode(@Req() req) {
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = tokenRes.data.js.token;
+        const random:string = tokenRes.data.js.random;
+        const {archiveId} = req.query
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=tv_archive&action=create_link&cmd=auto%20/media/${archiveId}.mpg&series=&forced_storage=&disable_ad=0&download=0&force_ch_link_check=0&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        })
+
+        return response.data.js.cmd
+    }
+
+
 }

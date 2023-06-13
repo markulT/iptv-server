@@ -46,8 +46,6 @@ export class OttController {
             throw new HttpException("Please buy a subscription first",HttpStatus.FORBIDDEN)
         }
 
-
-
         const {stream} = req.query
         const ipRequest = req.header('x-forwarded-for')
         const realName = await this.ottService.getStreamUrl(stream)
@@ -65,6 +63,40 @@ export class OttController {
         console.log(streamLink)
         // ab
         return streamLink
+    }
+
+    @Get("/archive")
+    public async archive(@Req() req) {
+
+        // 19
+        const {stream} = req.query
+
+        const ipRequest = req.header('x-forwarded-for')
+
+        const archiveUrl = await this.ottService.getArchiveUrl(stream)
+        const realName = await this.ottService.getRealName(archiveUrl)
+
+        console.log(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`)
+        const data = {
+            stream:`${realName}`,
+            ip:`${ipRequest}`
+        }
+        const formData = qs.stringify(data)
+
+        const archiveLink = await axios.post(`${this.configService.get<string>('OTT_SERVER')}/video.php`, formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(res=>res.data)
+        console.log(archiveLink)
+
+        const token = await this.ottService.parseTokenFromUrl(archiveUrl)
+
+        const domain = this.configService.get("MINISTRA_PORTAL") ? this.configService.get("MINISTRA_PORTAL") : 'a7777.top'
+
+        const modifiedUrl = await this.ottService.replaceToken(archiveUrl, token).then(url=>this.ottService.replaceDomain(url, domain))
+        console.log(modifiedUrl)
+        return modifiedUrl
     }
 
 

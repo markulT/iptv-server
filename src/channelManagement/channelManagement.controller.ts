@@ -243,15 +243,16 @@ export class ChannelManagementController {
         const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
         console.log(pages);
         const mergedData = [response.data["js"]["data"]];
-        console.log(mergedData);
 
-        for (let i = 1; i < pages; i++) {
+        for (let i = 2; i <= pages; i++) {
+            console.log()
             const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=${channelId}&date=${date}&p=${i}&JsHttpRequest=1-xml`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
                 },
             });
+            console.log(`iterations${i}`)
             mergedData.push(pageResponse.data["js"]["data"]);
         }
 

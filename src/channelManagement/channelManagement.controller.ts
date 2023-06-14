@@ -245,7 +245,7 @@ export class ChannelManagementController {
         const mergedData = [response.data["js"]["data"]];
         console.log(mergedData);
 
-        for (let i = 2; i < pages; i++) {
+        for (let i = 1; i < pages; i++) {
             const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=${channelId}&date=${date}&p=${i}&JsHttpRequest=1-xml`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -184,5 +184,4 @@ export class ChannelManagementService {
         return responseImage.data
 
     }
-
 }

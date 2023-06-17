@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class AppService {
 
+  constructor(
+      private configService:ConfigService
+  ) {
+  }
+
+
   getHello(): string {
-    return process.env.PRIVATE_API_KEY_MAILGUN;
+    return this.configService.get("PRIVATE_API_KEY_MAILGUN");
   }
 }

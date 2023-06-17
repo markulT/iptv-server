@@ -37,5 +37,5 @@ jobs:
             npm i
             npm run build
             pm2 delete strapi
-            NODE_ENV=production pm2 start npm --name strapi -- run start:prod
+            NODE_ENV=production PRIVATE_API_KEY_MAILGUN=${{ secrets.PRIVATE_API_KEY_MAILGUN }} MAILGUN_SENDING_DOMAIN=${{ secrets.MAILGUN_SENDING_DOMAIN }} REDIRECT_LINK=${{ secrets.REDIRECT_LINK }} pm2 start npm --name strapi -- run start:prod
             pm2 status

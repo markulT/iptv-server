@@ -9,8 +9,7 @@ export class AppService {
   ) {
   }
 
-
   getHello(): string {
-    return this.configService.get("PRIVATE_API_KEY_MAILGUN");
+    return this.configService.get("NODE_ENV");
   }
 }

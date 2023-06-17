@@ -79,7 +79,7 @@ export class UserService {
 
 
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
-        // await this.mailService.sendActivationEmail(email, activationLink)
+        await this.mailService.sendActivationEmail(email, activationLink)
         const tokens = this.tokenService.generateToken({ ...userDto })
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
         return {

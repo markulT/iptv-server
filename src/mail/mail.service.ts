@@ -8,13 +8,12 @@ export class MailService {
     constructor(
         private configService: ConfigService
     ) {
-        this.mg = Mailgun({
-            apiKey: process.env.PRIVATE_API_KEY_MAILGUN,
-            domain: process.env.MAILGUN_SENDING_DOMAIN
-        })
     }
     async sendActivationEmail(email, activationLink): Promise<Mailgun.messages.SendResponse> {
-
+        this.mg = Mailgun({
+            apiKey: this.configService.get('PRIVATE_API_KEY_MAILGUN'),
+            domain: this.configService.get('MAILGUN_SENDING_DOMAIN')
+        })
         await this.mg.messages().send({
             from: this.configService.get('JS_CODE_MAIL'),
             to: email,

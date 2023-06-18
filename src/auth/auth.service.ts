@@ -63,7 +63,6 @@ export class AuthService {
 
     @Cron('0 5 * * *')
     async intervalClearSessions() {
-        console.log('running scheduled')
         await this.sessionAuthModel.deleteMany({})
     }
 

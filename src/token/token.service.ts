@@ -29,7 +29,6 @@ export class TokenService {
         const tokenData = await this.tokenModel.findOne({user: userId})
         if (tokenData) {
             if (previousToken !== '') {
-                console.log('swap')
                 tokenData.refreshToken = tokenData.refreshToken.map(i=>{
                     if(i==previousToken) {
                         i=refreshToken
@@ -39,7 +38,6 @@ export class TokenService {
                 await tokenData.save()
                 return
             } else if (tokenData.refreshToken.length >= 5) {
-                console.log('push')
                 tokenData.refreshToken.pop()
                 tokenData.refreshToken.unshift(refreshToken)
             } else {
@@ -54,7 +52,10 @@ export class TokenService {
     }
 
     async removeToken(refreshToken) {
-        const token = await this.tokenModel.deleteOne({refreshToken})
+        // const token = await this.tokenModel.deleteOne({refreshToken})
+        const token = await this.tokenModel.findOne({refreshToken:{$in : [refreshToken]}})
+        token.refreshToken.filter((value)=>value!=refreshToken);
+        token.save();
         return token
     }
 

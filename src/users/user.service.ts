@@ -1,20 +1,18 @@
-import { UserDto } from './../dtos/user-dto';
-import { ConfigService } from '@nestjs/config';
-import { TokenService } from './../token/token.service';
+import {UserDto} from './../dtos/user-dto';
+import {ConfigService} from '@nestjs/config';
+import {TokenService} from './../token/token.service';
 
-import { User, UserDocument } from './user.schema';
-import {Get, HttpException, HttpStatus, Inject, Injectable} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { JwtService } from '@nestjs/jwt';
+import {User, UserDocument} from './user.schema';
+import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {InjectModel} from "@nestjs/mongoose";
+import {Model} from "mongoose";
+import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
 import axios from 'axios';
 import {MailService} from "../mail/mail.service";
-import {type} from "os";
 // import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
 import {SessionAuth, SessionAuthDocument} from "../socket/sessionAuth.schema";
-import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
 import {SocketGateway} from "../socket/socket.gateway";
 
 type $FixMe = any
@@ -280,6 +278,11 @@ export class UserService {
         //         fullProfile: jsonUserMinistra
         //     })
         // }
+    }
+
+    async getUserDto(email:string):Promise<UserDto> {
+        const user = await this.userModel.findOne({email:email})
+        return new UserDto(user);
     }
 
 }

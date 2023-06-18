@@ -1,10 +1,9 @@
-import { ConfigService } from '@nestjs/config';
-import { createUserDto } from './../dtos/create-user.dto';
-import { UserDto } from './../dtos/user-dto';
-import { UserService } from './user.service';
-import {Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, Request, Res} from "@nestjs/common";
+import {ConfigService} from '@nestjs/config';
+import {createUserDto} from './../dtos/create-user.dto';
+import {loginData, UserService} from './user.service';
+import {Body, Controller, Get, Param, Post, Req, Request, Res} from "@nestjs/common";
 import ApiError from '../exceptions/api-error'
-import {loginData} from "./user.service";
+
 interface responseAuth {
     userData:loginData
 }
@@ -133,11 +132,15 @@ export class UserController {
     async submitTvAuth(@Req() req, @Body() body) {
         const userData = req.user
         const authCode = body.authCode
-        console.log(userData)
         this.userService.submitTvAuthCode(authCode, userData.email)
         return null
     }
 
+    @Get("/profile")
+    async profile(@Req() req) {
+        const userData = req.user
+        return await this.userService.getUserDto(userData.email)
+    }
 
 
 }

@@ -36,7 +36,8 @@ export class UserModule implements NestModule {
             .forRoutes(
                 {path: 'api/users', method: RequestMethod.GET,},
                 {path: 'api/getFullProfile', method: RequestMethod.GET,},
-                {path: 'api/submitTvAuth', method: RequestMethod.POST,}
+                {path: 'api/submitTvAuth', method: RequestMethod.POST,},
+                {path: 'api/profile', method: RequestMethod.GET,},
             )
     }
 }

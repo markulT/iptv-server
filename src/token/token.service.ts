@@ -53,9 +53,11 @@ export class TokenService {
 
     async removeToken(refreshToken) {
         // const token = await this.tokenModel.deleteOne({refreshToken})
-        const token = await this.tokenModel.findOne({refreshToken:{$in : [refreshToken]}})
-        token.refreshToken.filter((value)=>value!=refreshToken);
-        token.save();
+        const token = await this.tokenModel.updateOne(
+            {refreshToken:refreshToken},
+            {$pull:{refreshToken:refreshToken}}
+        )
+
         return token
     }
 

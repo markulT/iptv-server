@@ -50,6 +50,13 @@ export class PayController {
         return result
     }
 
+    @Get("/createMobileTestSub")
+    async createMobileTestSub(@Req() req) {
+        const user = req.user
+        await this.payService.createMobileTestSub({email:user.email})
+        return
+    }
+
 
     @Post('/cancelSub')
     async cancelSub(@Body() body) {

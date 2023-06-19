@@ -52,6 +52,17 @@ export class PayService {
         return arePassEqual;
     }
 
+    async createMobileTestSub({email}) {
+        const user = await this.userModel.findOne({email:email})
+        const randomId = uuid.v4()
+        const date = Date.now()
+        user.mobileSubOrderId = randomId
+        user.mobileSubExists = true
+        user.mobileDate = date.toString()
+        user.mobileSubLevel = 1
+        await user.save()
+        return 'success'
+    }
 
     async createSub({email, password, tariffPlan, orderId, acqId}) {
         const accountNumber = uuid.v4()

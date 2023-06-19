@@ -164,7 +164,23 @@ export class ChannelManagementService {
             }
         })
 
-        return responseChannels.data.js.data;
+        const pages = Math.ceil(parseInt(responseChannels.data["js"]["total_items"]) / responseChannels.data["js"]["max_page_items"]);
+        console.log(pages);
+        const mergedData = [response.data["js"]["data"]];
+
+        for (let i = 2; i <= pages; i++) {
+            console.log()
+            const pageResponse = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=${i}&JsHttpRequest=1-xml`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+                },
+            });
+            console.log(`iterations${i}`)
+            mergedData.push(pageResponse.data["js"]["data"]);
+        }
+
+        return mergedData.flat();
 
     }
 

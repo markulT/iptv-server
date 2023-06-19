@@ -166,7 +166,8 @@ export class ChannelManagementService {
 
         const pages = Math.ceil(parseInt(responseChannels.data["js"]["total_items"]) / responseChannels.data["js"]["max_page_items"]);
         console.log(pages);
-        const mergedData = [response.data["js"]["data"]];
+        const mergedData = [responseChannels.data["js"]["data"]];
+        console.log(mergedData);
 
         for (let i = 2; i <= pages; i++) {
             console.log()

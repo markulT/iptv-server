@@ -50,7 +50,7 @@ export class PayController {
         return result
     }
 
-    @Get("/createMobileTestSub")
+    @Post("/createMobileTestSub")
     async createMobileTestSub(@Req() req) {
         const user = req.user
         await this.payService.createMobileTestSub({email:user.email})

@@ -1,4 +1,4 @@
-import {Controller, Get, HttpException, HttpStatus, Req, Res} from '@nestjs/common';
+import {Controller, Get, HttpException, HttpStatus, Param, Query, Req, Res} from '@nestjs/common';
 import {OttService} from "./ott.service";
 import * as bcrypt from 'bcrypt'
 import * as crypto from "crypto";
@@ -64,6 +64,108 @@ export class OttController {
         // ab
         return streamLink
     }
+
+    @Get("/getAllMovies")
+    public async getAllMovies(@Req() req) {
+        const {page} = req.query;
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+        const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
+        console.log(pages);
+
+
+        // const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
+        // console.log(pages);
+        // const mergedData = [response.data["js"]["data"]];
+        //
+        // for (let i = 135; i <= pages; i++) {
+        //     console.log()
+        //     const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=${i}&JsHttpRequest=1-xml`, {
+        //         headers: {
+        //             'Authorization': `Bearer ${token}`,
+        //             'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+        //         },
+        //     });
+        //     console.log(`iterations${i}`)
+        //     mergedData.push(pageResponse.data["js"]["data"]);
+        // }
+        //
+        // return mergedData.flat();
+
+        return response.data.js
+    }
+
+    @Get("moviesByGenre/:id")
+    public async moviesByGenre(@Param() param, @Req() req) {
+        const {page} = req.query
+        const category = param.id
+
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+        console.log(category);
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=added&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+        const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
+        console.log(pages);
+
+        return response.data.js
+    }
+
+    @Get("movieGenres")
+    public async movieGenres() {
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_categories&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+        return response.data.js
+    }
+
+    @Get("/image")
+    public async getImageMinistra(@Query() query, @Res() response) {
+        // return await this.channelManagementService.getImage(query.imgName, query.channelId);
+        // const data = await this.channelManagementService.getImage(query.imgName, query.channelId);
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token:string = tokenRes.data.js.token;
+        const random:string = tokenRes.data.js.random;
+        console.log(query.category + query.imgName)
+        const responseImage = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/screenshots/${query.category}/${query.imgName}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+            responseType:"arraybuffer"
+        })
+        response.setHeader('Content-Type', 'image/gif');
+        response.send(responseImage.data)
+    }
+
+
 
     @Get("/archive")
     public async archive(@Req() req) {

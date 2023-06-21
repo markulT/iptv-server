@@ -40,6 +40,19 @@ export class OttService
         return archiveResponse.js.cmd
     }
 
+    async getAllMovies() {
+        const {token, random} = await this.getTokens()
+
+        const allMoviesResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=1&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        }).then(res=>res.data)
+
+        return allMoviesResponse
+    }
+
     async getRealName(url:string):Promise<string> {
         const regex = /\/([a-zA-Z0-9]+)\/archive/;
         const match = url.match(regex)

@@ -1,6 +1,6 @@
-import {MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
-import { OttController } from './ott.controller';
-import { OttService } from './ott.service';
+import {MiddlewareConsumer, Module, NestModule, RequestMethod} from '@nestjs/common';
+import {OttController} from './ott.controller';
+import {OttService} from './ott.service';
 import {authMiddleware} from "../middlewares/auth-middleware";
 import {MongooseModule} from "@nestjs/mongoose";
 import {User, UserSchema} from "../users/user.schema";
@@ -24,6 +24,7 @@ export class OttModule implements NestModule{
   configure(consumer: MiddlewareConsumer): any {
     consumer
         .apply(authMiddleware)
+        .exclude({path: '/ott/image', method:RequestMethod.ALL})
         .forRoutes(OttController)
   }
 }

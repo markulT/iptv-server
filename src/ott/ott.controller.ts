@@ -1,4 +1,4 @@
-import {Controller, Get, HttpException, HttpStatus, Param, Query, Req, Res} from '@nestjs/common';
+import {Controller, Get, HttpException, HttpStatus, Param, Query, Req, Res, MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
 import {OttService} from "./ott.service";
 import * as bcrypt from 'bcrypt'
 import * as crypto from "crypto";

@@ -80,29 +80,19 @@ export class OttController {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
         });
-        const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
-        console.log(pages);
 
+        const mergedData = [response.data["js"]["data"]];
 
-        // const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
-        // console.log(pages);
-        // const mergedData = [response.data["js"]["data"]];
-        //
-        // for (let i = 135; i <= pages; i++) {
-        //     console.log()
-        //     const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=${i}&JsHttpRequest=1-xml`, {
-        //         headers: {
-        //             'Authorization': `Bearer ${token}`,
-        //             'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
-        //         },
-        //     });
-        //     console.log(`iterations${i}`)
-        //     mergedData.push(pageResponse.data["js"]["data"]);
-        // }
-        //
-        // return mergedData.flat();
+        const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=${page+1}&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+            mergedData.push(pageResponse.data["js"]["data"]);
 
-        return response.data.js
+        return mergedData.flat();
+
     }
 
     @Get("moviesByGenre/:id")
@@ -122,10 +112,19 @@ export class OttController {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
         });
-        const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
-        console.log(pages);
 
-        return response.data.js
+
+        const moviesByGenreMergedData = [response.data["js"]["data"]];
+
+        const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=added&hd=0&not_ended=0&p=${page+1}&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+        moviesByGenreMergedData.push(pageResponse.data["js"]["data"]);
+
+        return moviesByGenreMergedData.flat();
     }
 
     @Get("movieGenres")

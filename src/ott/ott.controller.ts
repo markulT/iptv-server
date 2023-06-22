@@ -139,6 +139,8 @@ export class OttController {
     public async moviesByGenreLength(@Param() param) {
         const category = param.id
 
+        console.log("baobab")
+
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token = tokenRes.data.js.token;

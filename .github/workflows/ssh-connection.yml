@@ -26,7 +26,7 @@ jobs:
             rm -r iptv-server
             git config user.name "GitHub Actions"
             git config user.email "<>"
-            git clone https://markulT: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@github.com/markulT/iptv-server.git
+            git clone https://markulT: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@github.com/markulT/iptv-server.git
             cd iptv-server/
             git config --local credential.helper store
             git config --local credential.https://github.com.username ${{ secrets.GITHUB_TOKEN }}

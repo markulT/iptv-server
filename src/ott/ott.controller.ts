@@ -195,6 +195,25 @@ export class OttController {
         return response.data.js
     }
 
+    @Get("/searchMovies")
+    public async searchMovies(@Req() req) {
+        // const {page} = req.query
+        const search = encodeURIComponent(req.query.search);
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=1&JsHttpRequest=1-xml&abc=*&genre=*&years=*&search=${search}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+        return response.data.js
+    }
+
     @Get("/image")
     public async getImageMinistra(@Query() query, @Res() response) {
         // return await this.channelManagementService.getImage(query.imgName, query.channelId);

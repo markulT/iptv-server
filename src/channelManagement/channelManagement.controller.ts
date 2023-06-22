@@ -240,6 +240,7 @@ export class ChannelManagementController {
             },
         });
 
+        //папаяло
         const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);
         console.log(pages);
         const mergedData = [response.data["js"]["data"]];

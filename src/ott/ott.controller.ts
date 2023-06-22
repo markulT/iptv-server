@@ -135,7 +135,7 @@ export class OttController {
         return moviesByGenreMergedData.flat();
     }
 
-    @Get("moviesByGenreLength")
+    @Get("moviesByGenreLength/:id")
     public async moviesByGenreLength(@Param() param) {
         const category = param.id
 

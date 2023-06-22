@@ -113,7 +113,6 @@ export class OttController {
             },
         });
 
-
         const moviesByGenreMergedData = [response.data["js"]["data"]];
 
         const pageResponse = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=added&hd=0&not_ended=0&p=${page+1}&JsHttpRequest=1-xml`, {
@@ -125,6 +124,48 @@ export class OttController {
         moviesByGenreMergedData.push(pageResponse.data["js"]["data"]);
 
         return moviesByGenreMergedData.flat();
+    }
+
+    @Get("moviesByGenreLength")
+    public async moviesByGenreLength(@Param() param) {
+        const category = param.id
+
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+        console.log(category);
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=added&hd=0&not_ended=0&p=1&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+
+
+        return response.data.js.total_items;
+
+    }
+
+    @Get("/getAllMoviesLength")
+    public async getAllMoviesLength() {
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=1&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+
+
+        return response.data.js.total_items;
+
     }
 
     @Get("movieGenres")

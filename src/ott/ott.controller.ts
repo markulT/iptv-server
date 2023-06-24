@@ -42,14 +42,12 @@ export class OttController {
     async getStream(@Req() req, @Res({passthrough:true}) res) {
         const userData = req.user
         const userFromDB = await this.userModel.findOne({email:userData.email})
-        if(!userFromDB.mobileSubExists || !userFromDB.mobileSubOrderId) {
-            throw new HttpException("Please buy a subscription first",HttpStatus.FORBIDDEN)
-        }
+
 
         const {stream} = req.query
         const ipRequest = req.header('x-forwarded-for')
         const realName = await this.ottService.getStreamUrl(stream)
-        console.log(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`)
+
         const data = {
             stream:`${realName}`,
             ip:`${ipRequest}`
@@ -139,7 +137,6 @@ export class OttController {
     public async moviesByGenreLength(@Param() param) {
         const category = param.id
 
-        console.log("baobab")
 
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
@@ -222,7 +219,6 @@ export class OttController {
 
         const token:string = tokenRes.data.js.token;
         const random:string = tokenRes.data.js.random;
-        console.log(query.category + query.imgName)
         const responseImage = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/screenshots/${query.category}/${query.imgName}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

@@ -14,7 +14,6 @@ export class AuthController {
     async submitTvAuth(@Req() req, @Body() body) {
         const userData = req.user
         const authCode = body.authCode
-        console.log(userData)
         this.authService.submitTvAuthCode(authCode, userData.email)
         return null
     }

@@ -9,6 +9,7 @@ import {Token, TokenSchema} from "../token/token.schema";
 import {TokenModule} from "../token/token.module";
 import {ConfigService} from "@nestjs/config";
 import {SocketModule} from "@nestjs/websockets/socket-module";
+import {SubscriptionMiddleware} from "../middlewares/subscriptionMiddleware";
 
 @Module({
   imports:[
@@ -25,6 +26,11 @@ export class OttModule implements NestModule{
     consumer
         .apply(authMiddleware)
         .exclude({path: '/ott/image', method:RequestMethod.ALL})
+        .forRoutes(OttController)
+        .apply(SubscriptionMiddleware)
+        .exclude(
+            {path:'/ott/image', method:RequestMethod.ALL},
+            )
         .forRoutes(OttController)
   }
 }

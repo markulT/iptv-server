@@ -25,6 +25,9 @@ import {PrometheusModule} from "@willsoto/nestjs-prometheus";
 import {AdminMiddleware} from "./middlewares/adminMiddleware";
 import {User, UserSchema} from "./users/user.schema";
 import {Admin, AdminSchema} from "./admin/admin.schema";
+import {RequestMetricJob} from "./customMetrics/requestMetricJob";
+import {RequestMetricsService} from "./customMetrics/requestMetrics.service";
+import {RequestMetricMiddleware} from "./customMetrics/requestMetricMiddleware";
 
 
 @Module({
@@ -52,8 +55,12 @@ import {Admin, AdminSchema} from "./admin/admin.schema";
     providers: [AppService, {
         provide: APP_INTERCEPTOR,
         useValue: new RavenInterceptor()
-    }, JwtService],
+    }, JwtService, RequestMetricJob, RequestMetricsService],
 })
-export class AppModule  {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(RequestMetricMiddleware).forRoutes("*")
+    }
+}
 
 // DEIQqBc7zPSiWqVp

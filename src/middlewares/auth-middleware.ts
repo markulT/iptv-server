@@ -33,15 +33,15 @@ export class authMiddleware implements NestMiddleware {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-            return next(res.status(401).send('User'))
+            return next(res.status(401).send('Authentication error'))
         }
         const accessToken = authHeader.split(' ')[1]
         if (!accessToken) {
-            return next(res.status(401).send('User'))
+            return next(res.status(401).send('Authentication error'))
         }
         const userData = this.tokenService.validateAccessToken(accessToken)
         if (!userData) {
-            return next(res.status(401).send('User'))
+            return next(res.status(401).send('Authentication error'))
         }
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

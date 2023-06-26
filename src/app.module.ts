@@ -21,11 +21,17 @@ import {JwtService} from "@nestjs/jwt";
 import {SocketModule} from "@nestjs/websockets/socket-module";
 import {SocketIOModule} from "./socket/socket.module";
 import {ScheduleModule} from "@nestjs/schedule";
+import {PrometheusModule} from "@willsoto/nestjs-prometheus";
+import {AdminMiddleware} from "./middlewares/adminMiddleware";
+import {User, UserSchema} from "./users/user.schema";
+import {Admin, AdminSchema} from "./admin/admin.schema";
 
 
 @Module({
     imports: [
         MongooseModule.forRoot('mongodb+srv://root:DEIQqBc7zPSiWqVp@cluster0.fvtyf.mongodb.net/?retryWrites=true&w=majority'),
+        MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
+        MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),
         UserModule,
         TokenModule,
         ConfigModule.forRoot(),
@@ -39,7 +45,8 @@ import {ScheduleModule} from "@nestjs/schedule";
         ChannelManagementModule,
         SocketModule,
         SocketIOModule,
-        ScheduleModule.forRoot()
+        ScheduleModule.forRoot(),
+        PrometheusModule.register()
     ],
     controllers: [AppController],
     providers: [AppService, {
@@ -47,7 +54,6 @@ import {ScheduleModule} from "@nestjs/schedule";
         useValue: new RavenInterceptor()
     }, JwtService],
 })
-export class AppModule {
-}
+export class AppModule  {}
 
 // DEIQqBc7zPSiWqVp

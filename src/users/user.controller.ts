@@ -21,9 +21,9 @@ export class UserController {
     async registration(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) response):Promise<responseAuth> {
         try {
             // getting user data
-            const password = createUserDto.password
+            const password = createUserDto.password.trim()
             const fullName = createUserDto.fullName
-            const email = createUserDto.email
+            const email = createUserDto.email.trim()
             const phone = createUserDto.phone
             const address = createUserDto.address
 
@@ -47,8 +47,8 @@ export class UserController {
         console.log(createUserDto)
 
         // getting request`s body data
-        const email = createUserDto.email
-        const password = createUserDto.password
+        const email = createUserDto.email.trim()
+        const password = createUserDto.password.trim()
         const userData = await this.userService.login(email, password)
         console.log(userData)
         res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })

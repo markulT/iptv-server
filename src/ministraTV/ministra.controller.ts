@@ -15,7 +15,7 @@ export class MinistraController {
 
         const user = req.user
         const email = body.email
-
+        console.log(email + "aboba" + user.email)
         if (user.email != email) {
             throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
         }

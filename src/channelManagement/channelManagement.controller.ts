@@ -204,6 +204,19 @@ export class ChannelManagementController {
         return await this.channelManagementService.getAllChannelsMinistra();
     }
 
+    @Get("/channel/flex/:id")
+    public async getChannelsByGenreFlex(@Param() param, @Query() query) {
+        console.log(query.mac)
+
+        return await this.channelManagementService.getChannelsByGenreFlex(param.id, query.mac);
+    }
+
+    @Get("/all/flex")
+    public async getAllChannelsFlex(@Query() query) {
+
+        return await this.channelManagementService.getAllChannelsFlex(query.mac);
+    }
+
     @Get("/image")
     public async getImageMinistra(@Query() query, @Res() response) {
         // return await this.channelManagementService.getImage(query.imgName, query.channelId);

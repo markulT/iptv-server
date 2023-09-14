@@ -73,6 +73,7 @@ export class AdminService {
     async getAdmin(email) {
         return await this.adminModel.findOne({email})
     }
+
     async refresh(refreshToken):Promise<SuccessResponse> {
 
         if(!refreshToken) {
@@ -108,7 +109,8 @@ export class AdminService {
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
-        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email })
+        const date = new Date().toLocaleDateString('ru')
+        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email, signDate:date })
 
         // create and save jwts
 

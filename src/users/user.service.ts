@@ -186,6 +186,43 @@ export class UserService {
         return users
     }
 
+    async getUsersBy(param) {
+        console.log(param)
+        const users = await this.userModel.find(param)
+        console.log(users)
+        return users
+    }
+
+    async getUsersCountBy(param) {
+        console.log(param)
+        const users = await this.userModel.count(param)
+        console.log(users)
+        return users
+    }
+
+    async getCountsForMultipleParams(paramsArray) {
+        const data = [];
+
+        for (const param of paramsArray) {
+            const count = await this.getUsersCountBy(param);
+            data.push(count);
+        }
+
+        return data;
+    }
+
+    async getGainCountBy(paramsArray) {
+        const data = [];
+
+        for (const param of paramsArray) {
+            const count = await this.getUsersCountBy(param);
+            data.push(count);
+        }
+
+        return data;
+    }
+
+
     // async getProfile(login) {
 
     //     return 0
@@ -210,19 +247,48 @@ export class UserService {
     }
     async getPage(id,pageSize:number):Promise<Array<User>> {
         if (id==1) {
-            return await this.userModel.find().limit(pageSize)
+            return this.userModel.find().limit(pageSize);
         }
         const page = await this.userModel.find().skip((id-1) * pageSize).limit(pageSize)
         return page
     }
-    async getLenght() {
-        const lenght = await this.userModel.count()
-        return lenght
+
+    async getPageBy(id, pageSize:number, filters: Record<string, any> = {}) {
+
+        console.log(filters)
+        if (id === 1) {
+            return this.userModel.find(filters).limit(pageSize);
+        }
+
+        const page = await this.userModel
+            .find(filters)
+            .skip((id - 1) * pageSize)
+            .limit(pageSize);
+        return page;
     }
-    async findUsers(regex:string):Promise<Array<User>> {
-        const users = await this.userModel.find({fullName:{$regex:regex}})
-        return users
+
+    async getPagesLength(filters: Record<string, any> = {}) {
+        const page = await this.userModel.find(filters)
+
+        return page.length;
     }
+
+    async getLength() {
+        return await this.userModel.count();
+    }
+
+    async findUsers(regex: string): Promise<Array<User>> {
+        const lowercaseRegex = regex.toLowerCase();
+        const users = await this.userModel.find({
+            $or: [
+                { fullName: { $regex: lowercaseRegex, $options: 'i' } },
+                { email: { $regex: lowercaseRegex, $options: 'i' } },
+                { phone: { $regex: lowercaseRegex, $options: 'i' } },
+            ],
+        });
+        return users;
+    }
+
     async getProfile(userData) {
         const user = await this.userModel.findOne({email:userData.email})
 

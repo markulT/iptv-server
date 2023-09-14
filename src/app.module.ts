@@ -28,6 +28,7 @@ import {Admin, AdminSchema} from "./admin/admin.schema";
 import {RequestMetricJob} from "./customMetrics/requestMetricJob";
 import {RequestMetricsService} from "./customMetrics/requestMetrics.service";
 import {RequestMetricMiddleware} from "./customMetrics/requestMetricMiddleware";
+import {AnalyticsModule} from "./analytics/analytics.module";
 
 
 @Module({
@@ -48,6 +49,7 @@ import {RequestMetricMiddleware} from "./customMetrics/requestMetricMiddleware";
         ChannelManagementModule,
         SocketModule,
         SocketIOModule,
+        AnalyticsModule,
         ScheduleModule.forRoot(),
         PrometheusModule.register()
     ],

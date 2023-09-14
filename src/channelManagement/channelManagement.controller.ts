@@ -239,11 +239,13 @@ export class ChannelManagementController {
 
     @Get("/getSchedule:id")
     public async getSchedule(@Param() par, @Req() req) {
+        console.log("aboba")
         const { date } = req.query;
         const channelId = par.id;
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token = tokenRes.data.js.token;
+        console.log(token)
         const random = tokenRes.data.js.random;
 
         const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=epg&action=get_simple_data_table&ch_id=${channelId}&date=${date}&p=1&JsHttpRequest=1-xml`, {
@@ -252,6 +254,7 @@ export class ChannelManagementController {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
         });
+        console.log(response)
 
         //папаяло
         const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);

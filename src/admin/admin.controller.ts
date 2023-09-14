@@ -1,17 +1,4 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpException,
-    HttpStatus,
-    Param,
-    Patch,
-    Post,
-    Put, Query,
-    Req,
-    Res
-} from "@nestjs/common";
+import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Query, Req, Res} from "@nestjs/common";
 import {AdminService} from "./admin.service";
 import {Action, CaslAbilityFactory} from "../casl/casl-ability.factory";
 import {Response} from "express";
@@ -19,6 +6,7 @@ import {RoleEnum} from "./role.enum";
 import {User} from "../users/user.schema";
 import {UserService} from "../users/user.service";
 import {PayService} from "../payments/pay.service";
+import {MailService} from "../mail/mail.service";
 
 
 @Controller('/admin')
@@ -27,7 +15,8 @@ export class AdminController {
         private adminService:AdminService,
         private abilityFactory: CaslAbilityFactory,
         private userService: UserService,
-        private payService: PayService
+        private payService: PayService,
+        private mailService: MailService
     ) {
     }
     @Get()
@@ -110,6 +99,72 @@ export class AdminController {
             users
         }
     }
+    @Get('/getUsersBy')
+    async getUsersBy(@Req() req, @Query() query) {
+        const activated = query.activated;
+        const unactivated = query.unactivated;
+        const subscription = query.subscription;
+        const signDate = query.signDate;
+        const ministraDate = query.ministraDate;
+        const adminAuth = req.user
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        console.log(subscription)
+        if (subscription !== undefined) {
+            const users = await this.userService.getUsersBy({ subLevel: Number(subscription) })
+            return {
+                users
+            }
+        } else {
+
+        }
+        if (signDate !== undefined) {
+            const parts = signDate.split('-');
+            const month = parts[0];
+            const year = parts[1];
+            const regexPattern = new RegExp(`${month}.${year}$`);
+            const users = await this.userService.getUsersBy({ signDate: { $regex: regexPattern } })
+            return {
+                users
+            }
+        } else {
+
+        }
+
+        if (ministraDate !== undefined) {
+            const parts = ministraDate.split('-');
+            const month = parts[0];
+            const year = parts[1];
+            const regexPattern = new RegExp(`${month}.${year}$`);
+            const users = await this.userService.getUsersBy({ ministraDate: { $regex: regexPattern } })
+            return {
+                users
+            }
+        } else {
+
+        }
+
+        if (activated !== undefined) {
+            const users = await this.userService.getUsersBy({ isActivated: true })
+            return {
+                users
+            }
+        } else {
+        }
+
+        if (unactivated !== undefined) {
+            const users = await this.userService.getUsersBy({ isActivated: false })
+            return {
+                users
+            }
+        } else {
+        }
+
+    }
+
 
     @Get('/getPage')
     async getPage(@Req() req, @Param() param, @Query() reqParam) {
@@ -122,11 +177,71 @@ export class AdminController {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
         const page = await this.userService.getPage(pageId, pageSize)
-        const lenght = await this.userService.getLenght()
+        const lenght = await this.userService.getLength()
         return {
             lenght, page
         }
     }
+
+    @Get('/getPageBy')
+    async getPageBy(@Req() req, @Query() query) {
+        const adminAuth = req.user;
+        const pageId = query.pageId;
+        const pageSize = query.pageSize;
+        const isActivatedFilter = query.isActivated; // Example filter parameter
+        const registeredFilter = query.registered; // Example filter parameter
+        const subscriptionFilter = query.subscription; // Example filter parameter
+
+        const admin = await this.adminService.getAdmin(adminAuth.email);
+        const ability = this.abilityFactory.defineAbility(admin);
+
+        if (!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+        }
+
+        // Define a filters object with defaults
+        const filters: Record<string, any> = {};
+
+        console.log(isActivatedFilter)
+
+        if (isActivatedFilter !== undefined) {
+            // Convert the string to a boolean if needed
+            filters.isActivated = isActivatedFilter === 'true';
+        } else {
+        }
+
+        if (subscriptionFilter !== undefined) {
+            // Convert the string to a boolean if needed
+            filters.subLevel = Number(subscriptionFilter);
+        } else {
+        }
+
+
+        const page = await this.userService.getPageBy(pageId, pageSize, filters);
+
+        console.log(registeredFilter)
+        const length = await this.userService.getPagesLength(filters); // You may want to implement a filter count method as well
+
+        if (registeredFilter !== undefined) {
+            // Convert the string to a boolean if needed
+            const currentDate = new Date();
+            const updatedDate = new Date(currentDate);
+            updatedDate.setMonth(currentDate.getMonth() - registeredFilter);
+
+            const filteredUsers = page.filter((user) => {
+                const userSignDate = new Date(user.signDate);
+
+                console.log(userSignDate)
+                console.log(updatedDate)
+                console.log(userSignDate < updatedDate)
+                return userSignDate < updatedDate;
+            });
+            return { length, page: filteredUsers }; // Use the same property name "page"
+        } else {
+            return { length, page }; // Use the same property name "page"
+        }
+    }
+
 
     @Get(`/getUser/:id`)
     async getUser(@Req() req, @Param() param) {
@@ -194,5 +309,42 @@ export class AdminController {
         }
         const result = this.adminService.cancelMinistraSub(id)
         return result
+    }
+
+    @Get('/getSubsInfo')
+    async getSubsInfo(@Req() req, @Param() param, @Query() reqParam) {
+        const adminAuth = req.user
+        const pageId = reqParam.pageId
+        const pageSize = reqParam.pageSize
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        const page = await this.userService.getPage(pageId, pageSize)
+        const lenght = await this.userService.getLength()
+        return {
+            lenght, page
+        }
+    }
+
+    @Post('/sendTestEmail')
+    async sendTestEmail(@Req() req, @Body() body) {
+        const adminAuth = req.user
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+
+        const emails = body.emails
+        const title = body.title
+        const paragraph = body.paragraph
+
+        console.log(emails)
+        console.log(title)
+        console.log(paragraph)
+
+        return this.mailService.sendTestEmail({emails, title, paragraph})
     }
 }

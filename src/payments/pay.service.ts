@@ -95,7 +95,12 @@ export class PayService {
             result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`, `login=${email}&password=${password}&full_name=${fullName}&account_number=${accountNumber}&tariff_plan=${tariffPlan}&status=${status}`).then(res => res.data)
             user.orderId = orderId
             user.acqId = acqId
+            user.subLevel = tariffPlan
             user.tvSubLevel = tariffPlan
+            user.mobileSubOrderId = orderId
+            user.mobileSubExists = true
+            user.mobileDate = date
+            user.mobileSubLevel = tariffPlan
             user.ministraDate = date
             await user.save()
         }
@@ -103,6 +108,8 @@ export class PayService {
     }
 
     async createTestSub({email, password, tariffPlan}) {
+
+        console.log(tariffPlan)
         const accountNumber = uuid.v4()
         const status = 1
         let result
@@ -131,7 +138,14 @@ export class PayService {
             //     status:`${status}`
             // })
             result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`, `login=${email}&password=${password}&full_name=${fullName}&account_number=${accountNumber}&tariff_plan=${tariffPlan}&status=${status}`).then(res => res.data)
+            user.orderId = "TEST SUB"
+            user.acqId = "TEST SUB"
+            user.subLevel = tariffPlan
             user.tvSubLevel = tariffPlan
+            user.mobileSubOrderId = "MOBILE TEST SUB"
+            user.mobileSubExists = true
+            user.mobileDate = date
+            user.mobileSubLevel = tariffPlan
             user.ministraDate = date
             await user.save()
         }
@@ -163,9 +177,15 @@ export class PayService {
             result = json
         })
 
-        user.orderId = ''
+        user.orderId = ""
+        user.acqId = ""
+        user.subLevel = 0
         user.tvSubLevel = 0
-        user.ministraDate = ''
+        user.mobileSubOrderId = ""
+        user.mobileSubExists = false
+        user.mobileDate = ""
+        user.mobileSubLevel = 0
+        user.ministraDate = ""
         await user.save()
 
         return result

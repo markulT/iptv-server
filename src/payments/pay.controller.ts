@@ -45,8 +45,14 @@ export class PayController {
     }
 
     @Post('/createTestSub')
-    async createTestSub(@Body() body) {
-        const result = await this.payService.createTestSub(body)
+    async createTestSub(@Body() body: any) {
+        // Now you can access all properties from the body
+        const email = body.email;
+        const password = body.password;
+        const tariffPlan = body.tariff;
+        console.log(body.email)
+
+        const result = await this.payService.createTestSub({email, password, tariffPlan})
         return result
     }
 
@@ -125,7 +131,7 @@ export class PayController {
                             result = await this.payService.createSub({
                                 email: userData.email,
                                 password: body.password,
-                                tariffPlan: 1,
+                                tariffPlan: 2,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })
@@ -148,7 +154,7 @@ export class PayController {
                             result = await this.payService.createSub({
                                 email: userData.email,
                                 password: body.password,
-                                tariffPlan: 2,
+                                tariffPlan: 3,
                                 orderId: paymentData.order_id,
                                 acqId: paymentData.acq_id,
                             })

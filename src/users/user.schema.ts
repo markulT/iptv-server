@@ -50,6 +50,9 @@ export class User {
     @Prop({default:0})
     mobileSubLevel:number
 
+    @Prop({default:0})
+    subLevel:number
+
     @Prop()
     ministraDate:string
 

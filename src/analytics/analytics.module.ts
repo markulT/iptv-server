@@ -1,9 +1,6 @@
 import {MiddlewareConsumer, Module, NestModule, RequestMethod} from "@nestjs/common";
-import {AdminController} from "./admin.controller";
-import {AdminService} from "./admin.service";
 import {TokenService} from "../token/token.service";
 import {MongooseModule} from "@nestjs/mongoose";
-import {Admin, AdminSchema} from "./admin.schema";
 import {TokenModule} from "../token/token.module";
 import {Token, TokenSchema} from "../token/token.schema";
 import {ConfigService} from "@nestjs/config";
@@ -20,11 +17,15 @@ import {SocketModule} from "@nestjs/websockets/socket-module";
 import {SocketIOModule} from "../socket/socket.module";
 import {SocketGateway} from "../socket/socket.gateway";
 import {AuthModule} from "../auth/auth.module";
+import {AnalyticsController} from "./analytics.controller";
+import {AnalyticsService} from "./analytics.service";
+import {AdminModule} from "../admin/admin.module";
+import {AdminService} from "../admin/admin.service";
 
 
 @Module({
     imports:[
-        MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),
+        // MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
         MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
@@ -32,22 +33,16 @@ import {AuthModule} from "../auth/auth.module";
         CaslModule,
         SocketModule,
         SocketIOModule,
-        AuthModule
+        AuthModule,
+        AdminModule
     ],
-    controllers:[AdminController],
-    providers:[AdminService, TokenService, ConfigService, UserService, JwtService, MailService, PayService, SocketServerProvider, SocketGateway],
-    exports: [AdminService, MongooseModule],
+    controllers:[AnalyticsController],
+    providers:[AnalyticsService, TokenService, ConfigService, UserService, JwtService, MailService, PayService, SocketServerProvider, SocketGateway, AdminService]
 })
-export class AdminModule implements NestModule {
+export class AnalyticsModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
         consumer
             .apply(authMiddleware)
-            .exclude(
-                {path:'/admin/login',method:RequestMethod.ALL},
-                {path:'/admin/register',method:RequestMethod.ALL},
-                {path:'/admin/refresh',method:RequestMethod.ALL},
-
-            )
-            .forRoutes(AdminController)
+            .forRoutes(AnalyticsController)
     }
 }

@@ -80,6 +80,8 @@ export class UserService {
         await this.mailService.sendActivationEmail(email, activationLink)
         const tokens = this.tokenService.generateToken({ ...userDto })
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
+        console.log("user dto")
+        console.log(userDto)
         return {
             ...tokens,
             user: userDto
@@ -89,7 +91,7 @@ export class UserService {
     async login(email, password):Promise<loginData> {
         const user = await this.userModel.findOne({ email })
         if (!user) {
-            throw new Error('User does not exist')
+            throw new HttpException('User does not exist', HttpStatus.EXPECTATION_FAILED)
         }
 
         const isPassEquals = await bcrypt.compare(password, user.password)
@@ -161,7 +163,7 @@ export class UserService {
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken, refreshToken)
         return {
             ...tokens,
-            user: userDto
+            user: user
         }
 
     }
@@ -302,7 +304,7 @@ export class UserService {
         const jsonUserMinistra = JSON.stringify(userMinistra?.data)
 
         return {
-            fullProfile:jsonUserMinistra
+            fullProfile:user
         }
     }
 

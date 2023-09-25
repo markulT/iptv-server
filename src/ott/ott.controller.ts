@@ -64,20 +64,24 @@ export class OttController {
     }
 
     @Get("/getAllMovies")
-    public async getAllMovies(@Req() req) {
+    public async getAllMovies(@Req() req, @Query() query) {
+        const param = query.param;
         const {page} = req.query;
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token = tokenRes.data.js.token;
         const random = tokenRes.data.js.random;
 
+        console.log(param)
 
-        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=added&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&row=0&category=*&fav=0&sortby=${param != null ? param : "added"}&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
         });
+
 
         const mergedData = [response.data["js"]["data"]];
 
@@ -98,7 +102,8 @@ export class OttController {
     }
 
     @Get("moviesByGenre/:id")
-    public async moviesByGenre(@Param() param, @Req() req) {
+    public async moviesByGenre(@Param() param, @Req() req, @Query() query) {
+        const sortBy = query.sortBy;
         const {page} = req.query
         const category = param.id
 
@@ -108,7 +113,7 @@ export class OttController {
         const random = tokenRes.data.js.random;
 
 
-        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=added&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=get_ordered_list&movie_id=0&season_id=0&episode_id=0&category=${category}&fav=0&sortby=${sortBy != null ? sortBy : "added"}&hd=0&not_ended=0&p=${page}&JsHttpRequest=1-xml`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
@@ -243,7 +248,6 @@ export class OttController {
         const archiveUrl = await this.ottService.getArchiveUrl(stream)
         const realName = await this.ottService.getRealName(archiveUrl)
 
-        console.log(`${this.configService.get<string>('OTT_SERVER')}/video.php?stream=${realName}&ipaddr=${ipRequest}`)
         const data = {
             stream:`${realName}`,
             ip:`${ipRequest}`
@@ -255,14 +259,13 @@ export class OttController {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         }).then(res=>res.data)
-        console.log(archiveLink)
+
 
         const token = await this.ottService.parseTokenFromUrl(archiveUrl)
 
         const domain = 's1.mega-tv.online'
 
         const modifiedUrl = await this.ottService.replaceToken(archiveUrl, token)
-        console.log(modifiedUrl)
         return modifiedUrl
     }
 

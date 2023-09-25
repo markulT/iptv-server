@@ -20,6 +20,10 @@ function getAllowedOrigins() {
   }
 }
 
+
+
+
+
 async function bootstrap() {
   Sentry.init({
     dsn:'https://0dd191edf3cf4208ae1029f1eccbb017@o4504176695902208.ingest.sentry.io/4504176705929216'

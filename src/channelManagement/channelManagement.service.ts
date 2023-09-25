@@ -205,13 +205,17 @@ export class ChannelManagementService {
         const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
+        const random:string = response.data.js.random;
 
-        const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=1&JsHttpRequest=1-xml`, {
+        const responseChannels = await axios.get(` https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_ordered_list&genre=${genreId}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=0&JsHttpRequest=1-xml`, {
+
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=${mac}; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+                'Cookie': `mac=00%3A1A%3A79%3A32%3A76%3A79; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             }
         })
+        console.log("response")
+        console.log(responseChannels.data)
 
         const pages = Math.ceil(parseInt(responseChannels.data["js"]["total_items"]) / responseChannels.data["js"]["max_page_items"]);
         console.log(pages);

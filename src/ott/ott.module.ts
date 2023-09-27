@@ -30,6 +30,12 @@ export class OttModule implements NestModule{
         .apply(SubscriptionMiddleware)
         .exclude(
             {path:'/ott/image', method:RequestMethod.ALL},
+                  {path:'/ott/searchMovies', method:RequestMethod.ALL},
+            {path:'/ott/getAllMoviesLength', method:RequestMethod.ALL},
+            {path:'/ott/moviesByGenreLength/:id', method:RequestMethod.ALL},
+            {path:'/ott/moviesByGenre/:id', method:RequestMethod.ALL},
+            {path:'/ott/getAllMovies', method:RequestMethod.ALL},
+
             )
         .forRoutes(OttController)
   }

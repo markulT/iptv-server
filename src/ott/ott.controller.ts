@@ -1,10 +1,6 @@
-import {Controller, Get, HttpException, HttpStatus, Param, Query, Req, Res, MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
+import {Controller, Get, Param, Query, Req, Res} from '@nestjs/common';
 import {OttService} from "./ott.service";
-import * as bcrypt from 'bcrypt'
-import * as crypto from "crypto";
-import {Request, Response} from "express";
-import {randomBytes} from "crypto";
-import axios, {Axios} from 'axios'
+import axios from 'axios'
 import {InjectModel} from "@nestjs/mongoose";
 import {Model} from "mongoose";
 import {User, UserDocument} from "../users/user.schema";
@@ -269,7 +265,35 @@ export class OttController {
         return modifiedUrl
     }
 
+    @Get("/getMovieUrl")
+    public async getMovie(@Query() query) {
+        const series = query.series;
+        const movieId = query.movieId;
+        console.log(series + movieId)
+        const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
+        const token = tokenRes.data.js.token;
+        const random = tokenRes.data.js.random;
+
+
+        const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=vod&action=create_link&cmd=/media/${movieId}.mpg%20position:0&series=${series}&forced_storage=&disable_ad=0&download=0&force_ch_link_check=0&JsHttpRequest=1-xml`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+            },
+        });
+
+        const regex = /http[s]?:\/\/[^\s]+/;
+        const match = response.data.js.cmd.match(regex); // Find the URL in the text
+
+        if (match) {
+            return {
+                "url": match[0].toString()
+            };
+        } else {
+            console.log('No URL found in the text.');
+        }
+    }
 
 
 

@@ -20,7 +20,7 @@ export class SubscriptionMiddleware implements NestMiddleware {
         const userData = req.user;
         console.log(userData)
         const user:User = await this.userModel.findOne({email:userData.email})
-        if(!user.mobileSubExists || !user.mobileSubOrderId) {
+        if(user.mobileSubLevel == 0) {
             // throw new HttpException("Please buy a subscription first",HttpStatus.FORBIDDEN)
             return next(res.status(403).send('Please buy a subscription first'))
         }

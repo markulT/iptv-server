@@ -13,8 +13,6 @@ export class MailService {
         this.mg = Mailgun({
             apiKey: this.configService.get('PRIVATE_API_KEY_MAILGUN'),
             domain: this.configService.get('MAILGUN_SENDING_DOMAIN')
-            // apiKey: '14482769ee7e67f88e3bb35ef5e9e696-bdb2c8b4-7c84d73f',
-            // domain: 'maximum-ott.com'
         })
         await this.mg.messages().send({
             from: this.configService.get('JS_CODE_MAIL'),
@@ -400,8 +398,6 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
         this.mg = Mailgun({
             apiKey: this.configService.get('PRIVATE_API_KEY_MAILGUN'),
             domain: this.configService.get('MAILGUN_SENDING_DOMAIN')
-            // apiKey: '14482769ee7e67f88e3bb35ef5e9e696-bdb2c8b4-7c84d73f',
-            // domain: 'maximum-ott.com'
         })
          const emailSend = await this.mg.messages().send({
             from: this.configService.get('JS_CODE_MAIL'),

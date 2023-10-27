@@ -13,6 +13,8 @@ export class MailService {
         this.mg = Mailgun({
             apiKey: this.configService.get('PRIVATE_API_KEY_MAILGUN'),
             domain: this.configService.get('MAILGUN_SENDING_DOMAIN')
+
+            //Aboba
         })
         await this.mg.messages().send({
             from: this.configService.get('JS_CODE_MAIL'),

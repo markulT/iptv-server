@@ -26,9 +26,9 @@ export class UserController {
             const email = createUserDto.email.trim()
             const phone = createUserDto.phone
             const address = createUserDto.address
-
-
-            const userData = await this.userService.registration(password, fullName, email, phone, address)
+            const dealer = createUserDto.dealer != null || createUserDto.dealer != "" ? createUserDto.dealer : ""
+            console.log("dealer :" + createUserDto.dealer)
+            const userData = await this.userService.registration(password, fullName, email, phone, address, dealer)
             response.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
             return {
                 userData
@@ -44,13 +44,11 @@ export class UserController {
     @Post('/login')
     async login(@Body() createUserDto: createUserDto, @Res({ passthrough: true }) res):Promise<responseAuth> {
 
-        console.log(createUserDto)
 
         // getting request`s body data
         const email = createUserDto.email.trim()
         const password = createUserDto.password.trim()
         const userData = await this.userService.login(email, password)
-        console.log(userData)
         res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none', secure:true })
         // res.setHeader('Set-Cookie', `refreshToken=${userData.refreshToken}; HttpOnly; SameSite=None ; Secure ; Max-Age=${30 * 24 * 60 * 60 * 1000}; Path=/`)
 
@@ -74,8 +72,6 @@ export class UserController {
     async refresh(@Req() req, @Res({passthrough:true}) res) {
 
         const { refreshToken } = req.cookies
-        console.log("refresh token is")
-        console.log(refreshToken)
 
         const userData = await this.userService.refresh(refreshToken)
 

@@ -33,6 +33,7 @@ import {AnalyticsModule} from "./analytics/analytics.module";
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         MongooseModule.forRoot('mongodb+srv://root:DEIQqBc7zPSiWqVp@cluster0.fvtyf.mongodb.net/?retryWrites=true&w=majority'),
         MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
         MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),

@@ -23,7 +23,7 @@ export class CaslAbilityFactory {
         if(admin.role === 'Admin') {
             can(Action.Manage, 'all')
         } else if(admin.role === "Dealer") {
-            can([Action.Read,Action.Create, Action.Update], User)
+            can([Action.Read,Action.Create, Action.Delete, Action.Update], User)
         } else if (admin.role === "SysAdmin") {
             can([Action.Manage, Action.Update, Action.Create, Action.Read, Action.Delete], Channel)
         }

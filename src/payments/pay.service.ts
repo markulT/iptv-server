@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 
 import * as uuid from 'uuid'
@@ -10,6 +10,7 @@ import {User, UserDocument} from "../users/user.schema";
 import {Model} from "mongoose";
 import * as bcrypt from 'bcrypt'
 import {stat} from "fs";
+import {Cron, Interval} from "@nestjs/schedule";
 // import Liqpay from './liqpay'
 
 // const liqpay = new Liqpay(process.env.PUBLIC_KEY_PAY, process.env.PRIVATE_KEY_PAY)
@@ -58,8 +59,9 @@ export class PayService {
         const date = Date.now()
         user.mobileSubOrderId = randomId
         user.mobileSubExists = true
-        user.mobileDate = date.toString()
+        user.mobileDate = new Date(date);
         user.mobileSubLevel = 1
+        user.trialExpirationDate = null
         await user.save()
         return 'success'
     }
@@ -82,7 +84,7 @@ export class PayService {
 
         const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
         const requestStatus = userExists.data.status
-        const date = new Date().toLocaleDateString('ru')
+        const date = new Date()
         if (requestStatus == "ERROR") {
             // result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`,{
             //     login:`${login}`,
@@ -102,6 +104,7 @@ export class PayService {
             user.mobileDate = date
             user.mobileSubLevel = tariffPlan
             user.ministraDate = date
+            user.trialExpirationDate = null
             await user.save()
         }
         return result
@@ -109,7 +112,6 @@ export class PayService {
 
     async createTestSub({email, password, tariffPlan}) {
 
-        console.log(tariffPlan)
         const accountNumber = uuid.v4()
         const status = 1
         let result
@@ -127,7 +129,7 @@ export class PayService {
 
         const userExists = await ministraApi.get(`http://a7777.top/stalker_portal/api/v1/users/${email}`)
         const requestStatus = userExists.data.status
-        const date = new Date().toLocaleDateString('ru')
+        const date = new Date()
         if (requestStatus == "ERROR") {
             // result = await ministraApi.post(`http://a7777.top/stalker_portal/api/v1/users`,{
             //     login:`${login}`,
@@ -147,6 +149,7 @@ export class PayService {
             user.mobileDate = date
             user.mobileSubLevel = tariffPlan
             user.ministraDate = date
+            user.trialExpirationDate = null
             await user.save()
         }
         return result
@@ -183,9 +186,10 @@ export class PayService {
         user.tvSubLevel = 0
         user.mobileSubOrderId = ""
         user.mobileSubExists = false
-        user.mobileDate = ""
+        user.mobileDate = null
         user.mobileSubLevel = 0
-        user.ministraDate = ""
+        user.ministraDate = null
+        user.trialExpirationDate = null
         await user.save()
 
         return result
@@ -207,8 +211,9 @@ export class PayService {
         const date = new Date().toLocaleDateString('ru')
         user.mobileSubOrderId = orderId
         user.mobileSubExists = true
-        user.mobileDate = date
+        user.mobileDate = new Date(date)
         user.mobileSubLevel = 1
+        user.trialExpirationDate = null
         await user.save()
         return 'Success'
     }
@@ -241,7 +246,8 @@ export class PayService {
         user.mobileSubOrderId = ''
         user.mobileSubExists = false
         user.mobileSubLevel = 0
-        user.mobileDate = ''
+        user.mobileDate = null
+        user.trialExpirationDate = null
         await user.save()
         return {
             message:'Successfuly canceled message',
@@ -276,7 +282,4 @@ export class PayService {
         const user = await this.userModel.findOne({orderId:orderId})
         return user
     }
-
-
-
 }

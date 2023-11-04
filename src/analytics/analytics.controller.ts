@@ -17,6 +17,9 @@ import {UserService} from "../users/user.service";
 import {PayService} from "../payments/pay.service";
 import {MailService} from "../mail/mail.service";
 import {AnalyticsService} from "./analytics.service";
+import {RoleEnum} from "../admin/role.enum";
+import {AdminService} from "../admin/admin.service";
+import {User} from "../users/user.schema";
 
 
 @Controller('/analytics')
@@ -24,14 +27,58 @@ export class AnalyticsController {
     constructor(
         private abilityFactory: CaslAbilityFactory,
         private userService: UserService,
+        private adminService: AdminService,
         private payService: PayService,
         private mailService: MailService,
         private analyticsService: AnalyticsService,
     ) {
     }
+
     @Get("/test")
-    test():string {
+    test(): string {
         return this.analyticsService.test()
+    }
+
+    @Get("/updateTypesMongo")
+    async updateTypesMongo(@Req() req, @Query() query) {
+        const url = 'mongodb+srv://root:DEIQqBc7zPSiWqVp@cluster0.fvtyf.mongodb.net/?retryWrites=true&w=majority';
+        const dbName = 'test';
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const MongoClient = require('mongodb').MongoClient;
+
+        const client = new MongoClient(url, {useUnifiedTopology: true});
+
+        try {
+            await client.connect();
+            const db = client.db(dbName);
+
+            // Replace 'dateStringField' and 'newDateField' with your field names
+            const collection = db.collection('users');
+
+
+            await collection.updateMany(
+                {
+                    signDate: {
+                        $regex: /^[0-9]{2}.[0-9]{2}.[0-9]{4}$/,
+                    },
+                },
+                [
+                    {
+                        $set: {
+                            signDate: {
+                                $dateFromString: {
+                                    dateString: "$signDate",
+                                    format: "%d.%m.%Y",
+                                },
+                            },
+                        },
+                    },
+                ]
+            );
+
+        } finally {
+            client.close();
+        }
     }
 
     @Get('/getChartBy')
@@ -41,15 +88,22 @@ export class AnalyticsController {
         const signDate = query.signDate;
         const ministraDate = query.ministraDate;
         const adminAuth = req.user
-        //const admin = await this.analyticsService.getAdmin(adminAuth.email)
-        // const ability = this.abilityFactory.defineAbility(admin)
-        // if(!ability.can(Action.Read, User)) {
-        //     throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
-        // }
-
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if (!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
 
         if (subscription !== undefined) {
-            const count = await this.userService.getCountsForMultipleParams([{ subLevel: 0 }, { subLevel: 1 }, { subLevel: 2 }, { subLevel: 3 }])
+
+            const filters: Record<string, any> = {};
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const subLevels = [0, 1, 2, 3, 4];
+
+            const params = subLevels.map(subLevel => ({subLevel, ...filters}));
+
+            const count = await this.userService.getCountsForMultipleParams(params);
+
             return {
                 count
             }
@@ -61,9 +115,21 @@ export class AnalyticsController {
 
             for (let i = 1; i <= 12; i++) {
 
-                const paddedMonth = i < 10 ? `0${i}` : `${i}`;
-                const ministraDateParam = { signDate: { $regex: new RegExp(`${paddedMonth}.${2023}$`) } };
+                const startOfMonth = new Date(2023, i - 1, 1);
+                const endOfMonth = new Date(2023, i, 1);
+                const ministraDateParam: Record<string, any> = {
+                    signDate: {
+                        $gte: startOfMonth,
+                        $lt: endOfMonth
+                    }
+                };
+
+                if (admin.role === RoleEnum.Dealer) {
+                    ministraDateParam.dealer = admin.email;
+                }
+
                 dateParams.push(ministraDateParam);
+
             }
 
             const count = await this.userService.getCountsForMultipleParams(dateParams)
@@ -81,8 +147,21 @@ export class AnalyticsController {
 
             for (let i = 1; i <= 12; i++) {
 
-                const paddedMonth = i < 10 ? `0${i}` : `${i}`;
-                const ministraDateParam = { ministraDate: { $regex: new RegExp(`${paddedMonth}.${2023}$`) } };
+                const startOfMonth = new Date(2023, i - 1, 1);
+                const endOfMonth = new Date(2023, i, 1);
+
+                const ministraDateParam: Record<string, any> = {
+                    ministraDate: {
+                        $gte: startOfMonth,
+                        $lt: endOfMonth
+                    },
+                    subLevel: {$lt: 4}
+                };
+
+                if (admin.role === RoleEnum.Dealer) {
+                    ministraDateParam.dealer = admin.email;
+                }
+
                 dateParams.push(ministraDateParam);
             }
 
@@ -96,8 +175,15 @@ export class AnalyticsController {
 
         }
 
+
         if (activated !== undefined) {
-            const count = await this.userService.getCountsForMultipleParams([{ isActivated: true }, { isActivated: false }])
+            const filters: Record<string, any> = {};
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const subLevels = [false, true];
+
+            const params = subLevels.map(isActivated => ({isActivated: isActivated, ...filters}));
+
+            const count = await this.userService.getCountsForMultipleParams(params);
             return {
                 count
             }
@@ -112,11 +198,11 @@ export class AnalyticsController {
         const newSubsLastMonth = query.newSubsLastMonth;
         const newPremiumLastMonth = query.newPremiumLastMonth;
         const adminAuth = req.user
-        //const admin = await this.analyticsService.getAdmin(adminAuth.email)
-        // const ability = this.abilityFactory.defineAbility(admin)
-        // if(!ability.can(Action.Read, User)) {
-        //     throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
-        // }
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if (!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
 
         if (newUsersLastMonth !== undefined) {
             const currentDate = new Date();
@@ -124,13 +210,25 @@ export class AnalyticsController {
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1; // Note: Months are zero-based, so add 1
 
-            console.log(currentYear + "" + currentMonth);
 
-            const paddedMonth = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+            const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+            const endOfMonth = new Date(currentYear, currentMonth, 1);
 
-            const ministraDateParam = { signDate: { $regex: new RegExp(`${paddedMonth}.${currentYear}$`) } };
+            const wholeTimeData: Record<string, any> = {
 
-            const count = await this.userService.getGainCountBy([{}, ministraDateParam]);
+            };
+
+            const currentMonthData: Record<string, any> = {
+                signDate: {
+                    $gte: startOfMonth,
+                    $lt: endOfMonth
+                },
+            };
+
+            admin.role == RoleEnum.Dealer ? currentMonthData.dealer = admin.email : ""
+            admin.role == RoleEnum.Dealer ? wholeTimeData.dealer = admin.email : ""
+
+            const count = await this.userService.getGainCountBy([currentMonthData, wholeTimeData]);
 
             return {
                 count
@@ -145,16 +243,30 @@ export class AnalyticsController {
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1; // Note: Months are zero-based, so add 1
 
-            console.log(currentYear + "" + currentMonth);
+            const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+            const endOfMonth = new Date(currentYear, currentMonth, 1);
 
-            const paddedMonth = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
 
-            const ministraDateParam = { ministraDate: { $regex: new RegExp(`${paddedMonth}.${currentYear}$`) } };
+            const wholeTimeData: Record<string, any> = {
+                ministraDate: {
+                    $exists: true
+                },
+                subLevel: {$gt: 0, $lt: 4}
+            };
 
-            const count = await this.userService.getGainCountBy([{ ministraDate: { $exists: true }}, ministraDateParam]);
+            if (admin.role === RoleEnum.Dealer) {
+                wholeTimeData.dealer = admin.email;
+            }
+            const currentMonthData: Record<string, any> = {
+                ministraDate: {
+                    $gte: startOfMonth,
+                    $lt: endOfMonth
+                }, subLevel: {$gt: 0, $lt: 4}
+            };
+            admin.role == RoleEnum.Dealer ? currentMonthData.dealer = admin.email : ""
+            admin.role == RoleEnum.Dealer ? wholeTimeData.dealer = admin.email : ""
 
-            console.log(count + "" + "avboaobab");
-
+            const count = await this.userService.getGainCountBy([currentMonthData, wholeTimeData]);
             return {
                 count
             };
@@ -168,18 +280,31 @@ export class AnalyticsController {
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1; // Note: Months are zero-based, so add 1
 
-            console.log(currentYear + "" + currentMonth);
+            const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+            const endOfMonth = new Date(currentYear, currentMonth, 1);
 
-            const paddedMonth = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
-
-            const ministraDateParam = {
-                ministraDate: { $regex: new RegExp(`${paddedMonth}.${currentYear}$`) },
+            const wholeTimeData: Record<string, any> = {
+                ministraDate: {$ne: null},
                 subLevel: 3
             };
 
-            const count = await this.userService.getGainCountBy([{ ministraDate: { $exists: true }, subLevel: 3}, ministraDateParam]);
+            if (admin.role === RoleEnum.Dealer) {
+                wholeTimeData.dealer = admin.email;
+            }
 
-            console.log(count + "" + "avboaobab");
+            const currentMonthData: Record<string, any> = {
+                ministraDate: {
+                    $gte: startOfMonth,
+                    $lt: endOfMonth
+                },
+                subLevel: 3
+            };
+            admin.role == RoleEnum.Dealer ? currentMonthData.dealer = admin.email : ""
+            admin.role == RoleEnum.Dealer ? wholeTimeData.dealer = admin.email : ""
+
+
+            const count = await this.userService.getGainCountBy([currentMonthData, wholeTimeData]);
+
 
             return {
                 count

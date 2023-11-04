@@ -1,4 +1,17 @@
-import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Query, Req, Res} from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpException,
+    HttpStatus,
+    Param,
+    Post,
+    Query,
+    Req,
+    Request,
+    Res
+} from "@nestjs/common";
 import {AdminService} from "./admin.service";
 import {Action, CaslAbilityFactory} from "../casl/casl-ability.factory";
 import {Response} from "express";
@@ -30,19 +43,40 @@ export class AdminController {
         return adminAuth
     }
 
+    @Post('/logout')
+    async logout(@Req() req: Request, @Res({passthrough:true}) res) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const refreshToken = req.cookies.refreshToken;
+        const token = await this.adminService.logout(refreshToken)
+        res.clearCookie('refreshToken')
+        return { token }
+    }
+
     @Post('/register')
     async register(@Body() body, @Res({passthrough:true}) res:Response){
-        const email:string = body.login
+
+        const email:string = body.email
         const fullName:string = body.fullName
         const password:string = body.password
         const role:RoleEnum = body.role
 
         const adminData = await this.adminService.register(email, password, fullName, role)
-        res.cookie('refreshToken', adminData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
         return {
             adminData
         }
     }
+
+    @Get('/getAdmins')
+    async getAdmins(){
+        return await this.adminService.getAdmins()
+    }
+
+    @Get('/getDealers')
+    async getDealers(){
+        return await this.adminService.getDealers()
+    }
+
     @Post('/login')
     async login(@Body() body, @Res({passthrough:true}) res:Response){
         const email:string = body.login
@@ -69,7 +103,9 @@ export class AdminController {
         const phone = body.phone
         const address = body.address
 
-        const user = await this.adminService.createClient(password,fullName,email,phone,address)
+        const dealer = admin.role == RoleEnum.Dealer ? admin.email : ""
+
+        const user = await this.adminService.createClient(password,fullName,email,phone,address, dealer)
         return {
             user
         }
@@ -86,7 +122,8 @@ export class AdminController {
             adminData
         }
     }
-    @Get('/getUsers/')
+
+    @Get('/getUsers')
     async getUsers(@Req() req) {
         const adminAuth = req.user
         const admin = await this.adminService.getAdmin(adminAuth.email)
@@ -94,11 +131,29 @@ export class AdminController {
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
-        const users = await this.userService.getUsers()
+        const filters: Record<string, any> = {};
+        admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+        const users = await this.userService.getUsers(filters)
         return {
             users
         }
     }
+    @Get('/getUsersCount')
+    async getUsersCount(@Req() req) {
+        const adminAuth = req.user
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Read, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        const filters: Record<string, any> = {};
+        admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+        const users = await this.userService.getUsersCount(filters)
+        return {
+            users
+        }
+    }
+
     @Get('/getUsersBy')
     async getUsersBy(@Req() req, @Query() query) {
         const activated = query.activated;
@@ -109,12 +164,17 @@ export class AdminController {
         const adminAuth = req.user
         const admin = await this.adminService.getAdmin(adminAuth.email)
         const ability = this.abilityFactory.defineAbility(admin)
+
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
-        console.log(subscription)
+
+        const filters: Record<string, any> = {};
+
         if (subscription !== undefined) {
-            const users = await this.userService.getUsersBy({ subLevel: Number(subscription) })
+            filters.subLevel = Number(subscription)
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const users = await this.userService.getUsersBy(filters)
             return {
                 users
             }
@@ -126,7 +186,9 @@ export class AdminController {
             const month = parts[0];
             const year = parts[1];
             const regexPattern = new RegExp(`${month}.${year}$`);
-            const users = await this.userService.getUsersBy({ signDate: { $regex: regexPattern } })
+            filters.signDate = { $regex: regexPattern }
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const users = await this.userService.getUsersBy(filters)
             return {
                 users
             }
@@ -139,7 +201,9 @@ export class AdminController {
             const month = parts[0];
             const year = parts[1];
             const regexPattern = new RegExp(`${month}.${year}$`);
-            const users = await this.userService.getUsersBy({ ministraDate: { $regex: regexPattern } })
+            filters.ministraDate = { $regex: regexPattern }
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const users = await this.userService.getUsersBy(filters)
             return {
                 users
             }
@@ -148,7 +212,9 @@ export class AdminController {
         }
 
         if (activated !== undefined) {
-            const users = await this.userService.getUsersBy({ isActivated: true })
+            filters.isActivated = true
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const users = await this.userService.getUsersBy(filters)
             return {
                 users
             }
@@ -156,7 +222,9 @@ export class AdminController {
         }
 
         if (unactivated !== undefined) {
-            const users = await this.userService.getUsersBy({ isActivated: false })
+            filters.isActivated = false
+            admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+            const users = await this.userService.getUsersBy(filters)
             return {
                 users
             }
@@ -176,7 +244,10 @@ export class AdminController {
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
-        const page = await this.userService.getPage(pageId, pageSize)
+        const filters: Record<string, any> = {};
+
+        admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+        const page = await this.userService.getPage(pageId, pageSize, filters)
         const lenght = await this.userService.getLength()
         return {
             lenght, page
@@ -191,6 +262,7 @@ export class AdminController {
         const isActivatedFilter = query.isActivated; // Example filter parameter
         const registeredFilter = query.registered; // Example filter parameter
         const subscriptionFilter = query.subscription; // Example filter parameter
+        const dealerFilter = query.dealer; // Example filter parameter
 
         const admin = await this.adminService.getAdmin(adminAuth.email);
         const ability = this.abilityFactory.defineAbility(admin);
@@ -202,7 +274,6 @@ export class AdminController {
         // Define a filters object with defaults
         const filters: Record<string, any> = {};
 
-        console.log(isActivatedFilter)
 
         if (isActivatedFilter !== undefined) {
             // Convert the string to a boolean if needed
@@ -216,11 +287,12 @@ export class AdminController {
         } else {
         }
 
-
-        const page = await this.userService.getPageBy(pageId, pageSize, filters);
-
-        console.log(registeredFilter)
-        const length = await this.userService.getPagesLength(filters); // You may want to implement a filter count method as well
+        if (dealerFilter !== undefined) {
+            // Convert the string to a boolean if needed
+            filters.dealer = dealerFilter;
+        } else {
+        }
+        console.log(dealerFilter)
 
         if (registeredFilter !== undefined) {
             // Convert the string to a boolean if needed
@@ -228,18 +300,16 @@ export class AdminController {
             const updatedDate = new Date(currentDate);
             updatedDate.setMonth(currentDate.getMonth() - registeredFilter);
 
-            const filteredUsers = page.filter((user) => {
-                const userSignDate = new Date(user.signDate);
-
-                console.log(userSignDate)
-                console.log(updatedDate)
-                console.log(userSignDate < updatedDate)
-                return userSignDate < updatedDate;
-            });
-            return { length, page: filteredUsers }; // Use the same property name "page"
+            filters.signDate = { $ne: null, $lt: updatedDate };
         } else {
-            return { length, page }; // Use the same property name "page"
+
         }
+        admin.role == RoleEnum.Dealer ? filters.dealer = admin.email : ""
+        const page = await this.userService.getPageBy(pageId, pageSize, filters);
+
+        const length = await this.userService.getPagesLength(filters); // You may want to implement a filter count method as well
+
+        return {length, page}
     }
 
 
@@ -282,7 +352,9 @@ export class AdminController {
         if(!ability.can(Action.Read, User)) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
         }
-        const users = await this.userService.findUsers(regex)
+        const dealer = admin.role == RoleEnum.Dealer ? admin.email : ""
+
+        const users = await this.userService.findUsers(regex, dealer)
         return {users}
     }
 
@@ -341,10 +413,32 @@ export class AdminController {
         const title = body.title
         const paragraph = body.paragraph
 
-        console.log(emails)
-        console.log(title)
-        console.log(paragraph)
 
         return this.mailService.sendTestEmail({emails, title, paragraph})
+    }
+
+    @Delete('/deleteAdmin/:id')
+    async deleteAdmin(@Param() param, @Req() req) {
+        const adminAuth = req.user
+        const adminId = param.id
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Delete, User)) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN)
+        }
+        return await this.adminService.deleteAdmin(adminId)
+    }
+
+    @Post('/createTestSub/:id')
+    async createTestSub(@Param() param, @Req() req, @Body() body) {
+        const adminAuth = req.user
+        const id:string = param.id
+        const time:string = body.time
+        const admin = await this.adminService.getAdmin(adminAuth.email)
+        const ability = this.abilityFactory.defineAbility(admin)
+        if(!ability.can(Action.Create, User)) {
+            throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN)
+        }
+        return this.adminService.createTestSub(id, time)
     }
 }

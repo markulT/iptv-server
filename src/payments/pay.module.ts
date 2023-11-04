@@ -6,6 +6,7 @@ import {authMiddleware} from "../middlewares/auth-middleware";
 import {TokenModule} from "../token/token.module";
 import {MongooseModule} from "@nestjs/mongoose";
 import {User, UserSchema} from "../users/user.schema";
+import {DailySubCheckService} from "./dailySubCheck";
 
 @Module({
     imports:[
@@ -13,7 +14,7 @@ import {User, UserSchema} from "../users/user.schema";
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     ],
     controllers:[PayController],
-    providers:[PayService, ConfigService]
+    providers:[PayService, ConfigService, DailySubCheckService]
 })
 
 export class PayModule implements NestModule {

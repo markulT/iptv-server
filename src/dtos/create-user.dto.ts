@@ -12,4 +12,6 @@ export class createUserDto {
     address:string
 
     phone:string
+
+    dealer:string
 }

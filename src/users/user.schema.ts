@@ -14,13 +14,13 @@ export class User {
     @Prop({default:""})
     orderId:string
 
-    @Prop()
+    @Prop({default:0})
     tvSubLevel:number
 
     @Prop({default:''})
     acqId:string
 
-    @Prop({default:false})
+    @Prop()
     freeTrialUsed:boolean
 
     @Prop()
@@ -44,7 +44,7 @@ export class User {
     @Prop({default:''})
     mobileSubOrderId:string
 
-    @Prop({default:false})
+    @Prop({default:true})
     mobileSubExists:boolean
 
     @Prop({default:0})
@@ -53,14 +53,17 @@ export class User {
     @Prop({default:0})
     subLevel:number
 
-    @Prop()
-    ministraDate:string
+    @Prop({default:null})
+    ministraDate:Date;
 
-    @Prop()
-    mobileDate:string
+    @Prop({default:null})
+    trialExpirationDate:Date;
 
-    @Prop({default:"Неизвестно"})
-    signDate:string
+    @Prop({default:null})
+    mobileDate:Date
+
+    @Prop({default:null})
+    signDate:Date
 
     @Prop()
     tvAuthCode:string

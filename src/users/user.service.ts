@@ -45,7 +45,7 @@ export class UserService {
         return 'Hola comosta'
     }
 
-    async registration(password: string, fullName: string, email:string, phone:string, address:string):Promise<loginData> {
+    async registration(password: string, fullName: string, email:string, phone:string, address:string, dealer:string):Promise<loginData> {
 
         // check if user exists
         const candidate = await this.userModel.findOne({ email })
@@ -62,8 +62,27 @@ export class UserService {
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
-        const date = new Date().toLocaleDateString('ru')
-        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email, signDate:date })
+        const date = new Date()
+        const trialExpirationDate = new Date(date);
+        trialExpirationDate.setDate(trialExpirationDate.getDate() + 14);
+        const user = await this.userModel.create(
+            { password: hash,
+            fullName, activationLink,
+            phone,
+            address,
+            email,
+            signDate:date,
+            ministraDate:date,
+            subLevel: 4,
+            tvSubLevel: 4,
+            mobileSubLevel: 4,
+            freeTrialUsed: false,
+            mobileSubOrderId: "TRIAL",
+            mobileSubExists:true,
+            orderId: "TRIAL",
+            trialExpirationDate: trialExpirationDate,
+            dealer:dealer}
+        )
 
         // create and save jwts
         const userDto = new UserDto(user);
@@ -80,8 +99,6 @@ export class UserService {
         await this.mailService.sendActivationEmail(email, activationLink)
         const tokens = this.tokenService.generateToken({ ...userDto })
         await this.tokenService.saveToken(userDto.id, tokens.refreshToken)
-        console.log("user dto")
-        console.log(userDto)
         return {
             ...tokens,
             user: userDto
@@ -122,7 +139,6 @@ export class UserService {
             const token = await this.tokenService.removeToken(refreshToken)
             return token
         } catch (error) {
-            console.log(error);
         }
     }
 
@@ -147,7 +163,6 @@ export class UserService {
         }
         const userData = await this.tokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await this.tokenService.findToken(refreshToken)
-        console.log(tokenFromDb)
         if (!userData || !tokenFromDb) {
 
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
@@ -183,22 +198,22 @@ export class UserService {
         }
     }
 
-    async getUsers() {
-        const users = await this.userModel.find()
+    async getUsers(filters: Record<string, any> = {}) {
+        const users = await this.userModel.find(filters)
         return users
     }
 
+    async getUsersCount(filters: Record<string, any> = {}) {
+        return this.userModel.count(filters);
+    }
+
     async getUsersBy(param) {
-        console.log(param)
         const users = await this.userModel.find(param)
-        console.log(users)
         return users
     }
 
     async getUsersCountBy(param) {
-        console.log(param)
         const users = await this.userModel.count(param)
-        console.log(users)
         return users
     }
 
@@ -242,22 +257,21 @@ export class UserService {
             }
         })
         const clientMinistra = JSON.stringify(userMinistra?.data.results)
+        console.log(user)
         return {
             user,
             clientMinistra
         }
     }
-    async getPage(id,pageSize:number):Promise<Array<User>> {
+    async getPage(id,pageSize:number, filters: Record<string, any> = {}):Promise<Array<User>> {
         if (id==1) {
-            return this.userModel.find().limit(pageSize);
+            return this.userModel.find(filters).limit(pageSize);
         }
-        const page = await this.userModel.find().skip((id-1) * pageSize).limit(pageSize)
-        return page
+        return this.userModel.find(filters).skip((id - 1) * pageSize).limit(pageSize);
     }
 
     async getPageBy(id, pageSize:number, filters: Record<string, any> = {}) {
 
-        console.log(filters)
         if (id === 1) {
             return this.userModel.find(filters).limit(pageSize);
         }
@@ -279,16 +293,21 @@ export class UserService {
         return await this.userModel.count();
     }
 
-    async findUsers(regex: string): Promise<Array<User>> {
+    async findUsers(regex: string, dealer: string): Promise<Array<User>> {
         const lowercaseRegex = regex.toLowerCase();
-        const users = await this.userModel.find({
+        const query: any = {
             $or: [
                 { fullName: { $regex: lowercaseRegex, $options: 'i' } },
                 { email: { $regex: lowercaseRegex, $options: 'i' } },
                 { phone: { $regex: lowercaseRegex, $options: 'i' } },
             ],
-        });
-        return users;
+        };
+
+        if (dealer) {
+            query.dealer = dealer;
+        }
+
+        return this.userModel.find(query);
     }
 
     async getProfile(userData) {

@@ -36,9 +36,25 @@ export class AdminService {
     test():string {
         return 'works'
     }
+
+    async logout(refreshToken) {
+        try {
+            const token = await this.tokenService.removeToken(refreshToken)
+            return token
+        } catch (error) {
+        }
+    }
+
+    async getAdmins() {
+       return this.adminModel.find()
+    }
+
+    async getDealers() {
+        return this.adminModel.find({role: RoleEnum.Dealer})
+    }
+
     async register(email:string, password:string,fullName:string, role:RoleEnum):Promise<SuccessResponse> {
         const candidate = await this.adminModel.findOne({email:email})
-        console.log(candidate)
         if(candidate) {
             throw new HttpException('User already exists',HttpStatus.NOT_ACCEPTABLE)
         }
@@ -71,7 +87,7 @@ export class AdminService {
         }
     }
     async getAdmin(email) {
-        return await this.adminModel.findOne({email})
+        return this.adminModel.findOne({email});
     }
 
     async refresh(refreshToken):Promise<SuccessResponse> {
@@ -95,7 +111,7 @@ export class AdminService {
         }
 
     }
-    async createClient(password: string, fullName: string, email:string, phone:string, address:string) {
+    async createClient(password: string, fullName: string, email:string, phone:string, address:string, dealer:string) {
         // const candidate = await this.userModel.findOne({ email })
         // if (candidate) {
         //     throw new HttpException('User already exists', HttpStatus.CONFLICT)
@@ -109,8 +125,26 @@ export class AdminService {
         const saltOrRounds = 12;
         const hash = await bcrypt.hash(password, saltOrRounds);
         const activationLink = await uuid.v4()
-        const date = new Date().toLocaleDateString('ru')
-        const user = await this.userModel.create({ password: hash, fullName, activationLink, phone, address, email, signDate:date })
+        const date = new Date()
+        const trialExpirationDate = new Date(date);
+        trialExpirationDate.setDate(trialExpirationDate.getDate() + 14);
+        const user = await this.userModel.create(
+            { password: hash,
+            fullName, activationLink,
+            phone,
+            address,
+            email,
+            signDate:date,
+            ministraDate:date,
+            subLevel: 4,
+            tvSubLevel: 4,
+            mobileSubLevel: 4,
+            freeTrialUsed: false,
+            mobileSubOrderId: "TRIAL",
+            mobileSubExists:true,
+            orderId: "TRIAL",
+            trialExpirationDate: trialExpirationDate,
+            dealer:dealer})
 
         // create and save jwts
 
@@ -123,6 +157,11 @@ export class AdminService {
     async deleteClient(id) {
         const user = await this.userModel.findById(id)
         await this.userModel.findByIdAndDelete(id)
+    }
+
+    async deleteAdmin(id) {
+        const admin = await this.adminModel.findById(id)
+        await this.adminModel.findByIdAndDelete(id)
     }
 
     async cancelSub(id:string) {
@@ -143,5 +182,31 @@ export class AdminService {
         }
         return 'No sub available to remove'
 
+    }
+
+    async createTestSub(id:string, time: string) {
+        const date = new Date()
+        const dateParts = time.split("-");
+        const year = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10) - 1; // Months are 0-indexed, so subtract 1.
+        const day = parseInt(dateParts[2], 10);
+
+        const dateObject = new Date(year, month, day);
+        const user = await this.userModel.findById(id)
+
+        user.ministraDate = date
+        user.trialExpirationDate = dateObject
+        user.subLevel = 4
+        user.tvSubLevel = 4
+        user.mobileSubLevel = 4
+        user.freeTrialUsed = false
+        user.mobileSubOrderId = "TRIAL"
+        user.mobileSubExists = true
+        user.orderId = "TRIAL"
+        user.save()
+
+        return {
+            user
+        }
     }
 }

@@ -823,7 +823,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
 
 </head>
 <body>
-<a href="${renewalLink}">Click here if you are not gay</a>
+<a href="${this.configService.get("REDIRECT_LINK")}/auth/resetPassword/${renewalLink}">Click here if you are not gay</a>
 </body>
 `
         })

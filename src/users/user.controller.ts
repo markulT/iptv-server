@@ -153,7 +153,7 @@ export class UserController {
         return await this.userService.getUserDto(userData.email)
     }
 
-    @Get("/forgotPassword")
+    @Put("/forgotPassword")
     async requestNewPassword(@Req() req, @Body() body: RequestNewPasswordRequestDTO) {
         const renewalCode = await this.userService.generateRenewalLink(body.email)
         await this.mailService.sendPasswordRenewalLink(body.email, renewalCode)

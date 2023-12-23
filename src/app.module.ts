@@ -29,6 +29,8 @@ import {RequestMetricJob} from "./customMetrics/requestMetricJob";
 import {RequestMetricsService} from "./customMetrics/requestMetrics.service";
 import {RequestMetricMiddleware} from "./customMetrics/requestMetricMiddleware";
 import {AnalyticsModule} from "./analytics/analytics.module";
+import {PasswordRenewalCleanerTaskService} from "./users/passwordRenewalCleanerTask.service";
+import {PasswordRenewal, PasswordRenewalSchema} from "./users/renewalPassword.schema";
 
 
 @Module({
@@ -37,6 +39,7 @@ import {AnalyticsModule} from "./analytics/analytics.module";
         MongooseModule.forRoot('mongodb+srv://root:DEIQqBc7zPSiWqVp@cluster0.fvtyf.mongodb.net/?retryWrites=true&w=majority'),
         MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
         MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}]),
+        MongooseModule.forFeature([{name: PasswordRenewal.name, schema: PasswordRenewalSchema}]),
         UserModule,
         TokenModule,
         ConfigModule.forRoot(),
@@ -58,7 +61,7 @@ import {AnalyticsModule} from "./analytics/analytics.module";
     providers: [AppService, {
         provide: APP_INTERCEPTOR,
         useValue: new RavenInterceptor()
-    }, JwtService, RequestMetricJob, RequestMetricsService],
+    }, JwtService, RequestMetricJob, RequestMetricsService, PasswordRenewalCleanerTaskService],
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {

@@ -11,6 +11,7 @@ import {SocketGateway} from "../socket/socket.gateway";
 import {JwtService} from "@nestjs/jwt";
 import {AuthController} from "./auth.controller";
 import {authMiddleware} from "../middlewares/auth-middleware";
+import {PasswordRenewal, PasswordRenewalSchema} from "../users/renewalPassword.schema";
 
 
 @Module({
@@ -18,6 +19,7 @@ import {authMiddleware} from "../middlewares/auth-middleware";
         MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
         MongooseModule.forFeature([{name: Token.name, schema: TokenSchema}]),
         MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
+        MongooseModule.forFeature([{name: PasswordRenewal.name, schema: PasswordRenewalSchema}]),
         TokenModule,
         SocketModule,
     ],

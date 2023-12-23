@@ -50,6 +50,11 @@ export class UserService {
         return ''
     }
 
+    async deleteExpiredItems(): Promise<void> {
+        const currentDate = new Date();
+        await this.passwordRenewalModel.deleteMany({ expireDate: { $lt: currentDate } }).exec();
+    }
+
     async updatePassword(renewalCode:string, newPassword:string):Promise<any> {
         const passwordRenewalItem = await this.passwordRenewalModel.findOne({renewalCode: renewalCode})
         if (passwordRenewalItem == null) {

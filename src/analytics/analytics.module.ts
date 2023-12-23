@@ -21,6 +21,7 @@ import {AnalyticsController} from "./analytics.controller";
 import {AnalyticsService} from "./analytics.service";
 import {AdminModule} from "../admin/admin.module";
 import {AdminService} from "../admin/admin.service";
+import {PasswordRenewal, PasswordRenewalSchema} from "../users/renewalPassword.schema";
 
 
 @Module({
@@ -29,6 +30,7 @@ import {AdminService} from "../admin/admin.service";
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
         MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
+        MongooseModule.forFeature([{name: PasswordRenewal.name, schema: PasswordRenewalSchema}]),
         TokenModule,
         CaslModule,
         SocketModule,

@@ -20,6 +20,7 @@ import {SocketModule} from "@nestjs/websockets/socket-module";
 import {SocketIOModule} from "../socket/socket.module";
 import {SocketGateway} from "../socket/socket.gateway";
 import {AuthModule} from "../auth/auth.module";
+import {PasswordRenewal, PasswordRenewalSchema} from "../users/renewalPassword.schema";
 
 
 @Module({
@@ -28,6 +29,7 @@ import {AuthModule} from "../auth/auth.module";
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
         MongooseModule.forFeature([{name: SessionAuth.name, schema: SessionAuthSchema}]),
+        MongooseModule.forFeature([{name: PasswordRenewal.name, schema: PasswordRenewalSchema}]),
         TokenModule,
         CaslModule,
         SocketModule,

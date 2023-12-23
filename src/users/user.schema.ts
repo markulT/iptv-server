@@ -68,6 +68,9 @@ export class User {
     @Prop()
     tvAuthCode:string
 
+    @Prop()
+    favouriteList:string[]
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

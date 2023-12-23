@@ -29,6 +29,10 @@ import axios from "axios";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path")
 
+class AddFavouriteChannelRequestDTO {
+    public channelId:string
+}
+
 @Controller("/channelManagement")
 export class ChannelManagementController {
     constructor(
@@ -178,6 +182,21 @@ export class ChannelManagementController {
         return channel
     }
 
+    @Put("/favourite")
+    public async addFavourite(@Req() req, @Body() body: AddFavouriteChannelRequestDTO) {
+
+        const user = req.user
+        await this.channelManagementService.addFavouriteChannel(user.id, body.channelId)
+        return null
+    }
+
+    @Get("/favourite/all")
+    public async getAllFavourites(@Req() req) {
+        const user = req.user
+        const channelIds = await this.channelManagementService.getAllFavourites(user.id)
+        return {favourites: channelIds}
+    }
+
     @Get("/test")
     public async test(@Req() req) {
         const ipRequest = req.header('x-forwarded-for')
@@ -254,7 +273,6 @@ export class ChannelManagementController {
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
         });
-        console.log(response)
 
         //папаяло
         const pages = Math.ceil(response.data["js"]["total_items"] / response.data["js"]["max_page_items"]);

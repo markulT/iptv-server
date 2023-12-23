@@ -1,17 +1,32 @@
 import {ConfigService} from '@nestjs/config';
 import {createUserDto} from './../dtos/create-user.dto';
 import {loginData, UserService} from './user.service';
-import {Body, Controller, Get, Param, Post, Req, Request, Res} from "@nestjs/common";
+import {Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Req, Request, Res} from "@nestjs/common";
 import ApiError from '../exceptions/api-error'
+import {MailService} from "../mail/mail.service";
+import {isNil} from "@nestjs/common/utils/shared.utils";
+import {Response} from "express";
+import {constants} from "http2";
 
 interface responseAuth {
     userData:loginData
 }
+
+class RequestNewPasswordRequestDTO {
+    readonly email:string;
+}
+
+class UpdatePasswordDTO {
+    readonly newPassword:string;
+    readonly renewalCode:string;
+}
+
 @Controller('/api')
 export class UserController {
     constructor(
         private userService: UserService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private mailService: MailService
     ) { }
     @Get()
     test() {
@@ -138,6 +153,27 @@ export class UserController {
         return await this.userService.getUserDto(userData.email)
     }
 
+    @Get("/forgotPassword")
+    async requestNewPassword(@Req() req, @Body() body: RequestNewPasswordRequestDTO) {
+        const renewalCode = await this.userService.generateRenewalLink(body.email)
+        await this.mailService.sendPasswordRenewalLink(body.email, renewalCode)
+        return null
+    }
+
+    @Put("/updatePassword")
+    async updatePassword(@Req() req, @Body() body:UpdatePasswordDTO, @Res() res:Response) {
+        try{
+            await this.userService.updatePassword(body.renewalCode, body.newPassword)
+            res.status(HttpStatus.OK).send({message:"Password successfully updated"})
+            return null
+        } catch (e) {
+            if (e.getStatus() != undefined || e.getStatus() != null) {
+                res.status(e.getStatus()).send({message:"Some error occured while updating password : " + e.getResponse()})
+            } else {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({message:"Error : " + e.message})
+            }
+        }
+    }
 
 }
 

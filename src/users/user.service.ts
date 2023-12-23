@@ -14,6 +14,8 @@ import {MailService} from "../mail/mail.service";
 // import {SocketServerProvider} from "@nestjs/websockets/socket-server-provider";
 import {SessionAuth, SessionAuthDocument} from "../socket/sessionAuth.schema";
 import {SocketGateway} from "../socket/socket.gateway";
+import {randomUUID} from "crypto";
+import {PasswordRenewal, PasswordRenewalDocument} from "./renewalPassword.schema";
 
 type $FixMe = any
 
@@ -29,6 +31,8 @@ export type findUserType = {
     clientMinistra:string
 }
 
+
+
 @Injectable()
 export class UserService {
     constructor(
@@ -39,10 +43,43 @@ export class UserService {
         private mailService: MailService,
         // private socketServerProvider: SocketServerProvider,
         @InjectModel(SessionAuth.name) private readonly sessionAuthModel: Model<SessionAuthDocument>,
+        @InjectModel(PasswordRenewal.name) private readonly passwordRenewalModel: Model<PasswordRenewalDocument>,
         private readonly socketGateway:SocketGateway
     ) { }
     test() {
-        return 'Hola comosta'
+        return ''
+    }
+
+    async updatePassword(renewalCode:string, newPassword:string):Promise<any> {
+        const passwordRenewalItem = await this.passwordRenewalModel.findOne({renewalCode: renewalCode})
+        if (passwordRenewalItem == null) {
+            throw new HttpException("Invalid renewal code", HttpStatus.EXPECTATION_FAILED)
+        }
+        const saltOrRounds = 12;
+        const hash = await bcrypt.hash(newPassword, saltOrRounds);
+        const user = await this.userModel.findById(passwordRenewalItem.userId)
+        if (user == null)  {
+            throw new HttpException("Invalid renewal code", HttpStatus.EXPECTATION_FAILED)
+        }
+        await this.userModel.updateOne({email:user.email}, {password: hash})
+        await this.passwordRenewalModel.deleteOne({renewalCode: renewalCode})
+    }
+
+    //await this.passwordRenewalModel.deleteOne()
+
+    async generateRenewalLink(email: string):Promise<string> {
+        const user = await this.userModel.findOne({email:email})
+        const renewalCode = randomUUID()
+        const scheduledDate = new Date()
+        scheduledDate.setHours(scheduledDate.getHours() + 1)
+        const passwordRenewalItem = this.passwordRenewalModel.create({
+            email:user.email,
+            userId: user.id,
+            expireDate: scheduledDate,
+            renewalCode: renewalCode
+        })
+
+        return renewalCode
     }
 
     async registration(password: string, fullName: string, email:string, phone:string, address:string, dealer:string):Promise<loginData> {

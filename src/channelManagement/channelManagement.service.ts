@@ -6,6 +6,7 @@ import {ChannelPropEnum} from "../dtos/channel.dto";
 // const Binary = require("mongodb").Binary
 import {Binary} from 'mongodb'
 import axios from "axios";
+import {User, UserDocument} from "../users/user.schema";
 
 interface Genre {
     title:string,
@@ -21,9 +22,23 @@ export class ChannelManagementService {
     })
 
     constructor(
-        @InjectModel(Channel.name) private readonly channelModel:Model<ChannelDocument>
+        @InjectModel(Channel.name) private readonly channelModel:Model<ChannelDocument>,
+        @InjectModel(User.name) private readonly userModel:Model<UserDocument>
     ) {
     }
+
+    async getAllFavourites(userId):Promise<string[]> {
+        const user = await this.userModel.findById(userId)
+        return user.favouriteList
+    }
+
+    async addFavouriteChannel(userId, channelId) {
+        await this.userModel.findByIdAndUpdate(userId,
+            {$push: {favouriteList:{$each:[channelId], $position: 0}}},
+        )
+        return null
+    }
+
     async getAll():Promise<Array<Channel>> {
         const channels = await this.channelModel.find()
         return channels
@@ -201,8 +216,7 @@ export class ChannelManagementService {
     }
 
     async getChannelsByGenreFlex(genreId:string, mac:string) {
-        console.log(mac  + 'mac')
-        console.log(genreId  + 'путку')
+
         const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
         const token:string = response.data.js.token;
@@ -215,13 +229,12 @@ export class ChannelManagementService {
             }
         })
 
-        console.log(responseChannels.data)
+
 
 
         const pages = Math.ceil(parseInt(responseChannels.data["js"]["total_items"]) / responseChannels.data["js"]["max_page_items"]);
-        console.log(pages);
+
         const mergedData = [responseChannels.data["js"]["data"]];
-        console.log(mergedData);
 
         for (let i = 2; i <= pages; i++) {
             console.log()

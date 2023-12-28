@@ -2,7 +2,6 @@ import {Injectable} from "@nestjs/common";
 import {InjectModel} from "@nestjs/mongoose";
 import {Channel, ChannelDocument} from "./channelManagement.schema";
 import {Model} from "mongoose";
-import {ChannelPropEnum} from "../dtos/channel.dto";
 // const Binary = require("mongodb").Binary
 import {Binary} from 'mongodb'
 import axios from "axios";
@@ -12,6 +11,8 @@ interface Genre {
     title:string,
     id:string
 }
+
+
 
 @Injectable()
 export class ChannelManagementService {
@@ -27,16 +28,30 @@ export class ChannelManagementService {
     ) {
     }
 
-    async getAllFavourites(userId):Promise<string[]> {
-        const user = await this.userModel.findById(userId)
-        return user.favouriteList
+    async getAllFavouriteChannels(userId): Promise<string[]> {
+        const user = await this.userModel.findById(userId);
+
+        // Remove duplicate values from favouriteList using a Set
+        // Use Promise.all to concurrently fetch channel details for each favorite
+        return user.favouriteChannelsList;
     }
+
 
     async addFavouriteChannel(userId, channelId) {
         await this.userModel.findByIdAndUpdate(userId,
-            {$push: {favouriteList:{$each:[channelId], $position: 0}}},
+            {$push: {favouriteChannelsList:{$each:[channelId], $position: 0}}},
         )
         return null
+    }
+
+    async deleteFavouriteChannel(userId, channelId) {
+        await this.userModel.findByIdAndUpdate(
+            userId,
+            {
+                $pull: { favouriteChannelsList: { id: channelId } } as any
+            }
+        );
+        return null;
     }
 
     async getAll():Promise<Array<Channel>> {
@@ -72,8 +87,7 @@ export class ChannelManagementService {
     }
 
     async findChannelById(id):Promise<Channel> {
-        const channel = await this.channelModel.findById(id)
-        return channel
+        return this.channelModel.findById(id);
     }
     async editImage(id,imgData, imgName) {
         const binImage = new Binary(imgData)
@@ -87,37 +101,37 @@ export class ChannelManagementService {
         return length
     }
 
-    async getToken(ipRequest:string) {
-
-        const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
-
-        const token:string = response.data.js.token;
-        const random:string = response.data.js.random;
-        const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
-            }
-        })
-
-        const channelList = responseChannels.data.js.data;
-        console.log(channelList[1])
-        let getUrl = `http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=create_link&cmd=${channelList[1].cmds[0].url.replace(' ', '%20')}&disable_ad=0&download=0&JsHttpRequest=1-xml`
-        console.log(getUrl);
-        const url = await axios.get(getUrl, {
-            headers: {
-                'Authorization':`Bearer ${token}`,
-                'Cookie':`mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
-            }
-        })
-        console.log(url.data.js.cmd)
-
-
-
-        // console.log(channelList)
-
-        return null;
-    }
+    // async getToken(ipRequest:string) {
+    //
+    //     const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
+    //
+    //     const token:string = response.data.js.token;
+    //     const random:string = response.data.js.random;
+    //     const responseChannels = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`, {
+    //         headers: {
+    //             'Authorization': `Bearer ${token}`,
+    //             'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+    //         }
+    //     })
+    //
+    //     const channelList = responseChannels.data.js.data;
+    //     console.log(channelList[1])
+    //     let getUrl = `http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=itv&action=create_link&cmd=${channelList[1].cmds[0].url.replace(' ', '%20')}&disable_ad=0&download=0&JsHttpRequest=1-xml`
+    //     console.log(getUrl);
+    //     const url = await axios.get(getUrl, {
+    //         headers: {
+    //             'Authorization':`Bearer ${token}`,
+    //             'Cookie':`mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
+    //         }
+    //     })
+    //     console.log(url.data.js.cmd)
+    //
+    //
+    //
+    //     // console.log(channelList)
+    //
+    //     return null;
+    // }
 
     async wtf() {
         const response = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);

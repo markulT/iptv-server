@@ -29,17 +29,20 @@ import axios from "axios";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path")
 
-class AddFavouriteChannelRequestDTO {
-    public channelId:string
+export class AddFavouriteChannelRequestDTO {
+    id: string;
+    name: string;
+    logoName: string;
+    url: string;
 }
 
 @Controller("/channelManagement")
 export class ChannelManagementController {
     constructor(
         private channelManagementService: ChannelManagementService,
-        private abilityFactory:CaslAbilityFactory,
+        private abilityFactory: CaslAbilityFactory,
         private userService: UserService,
-        private adminService:AdminService
+        private adminService: AdminService
     ) {
     }
 
@@ -50,67 +53,66 @@ export class ChannelManagementController {
     }
 
 
-
     @Post("/create")
     @UseInterceptors(FileInterceptor('image', {
-        storage:diskStorage({
-            destination:"./files",
-            filename:(req,file,cb)=>{
+        storage: diskStorage({
+            destination: "./files",
+            filename: (req, file, cb) => {
                 // console.log(path.parse(file.originalname))
-                const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") +  uuidv4()
-                const extension:string = path.parse(file.originalname).ext
+                const filename: string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4()
+                const extension: string = path.parse(file.originalname).ext
 
-                cb(null,`${filename}${extension}`)
+                cb(null, `${filename}${extension}`)
             }
         })
     }))
-    public async create(@Body() body, @Req() req, @UploadedFile() file:Express.Multer.File) {
+    public async create(@Body() body, @Req() req, @UploadedFile() file: Express.Multer.File) {
 
         const adminAuth = req.user
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Create, Channel)
-        if(!isAllowed) {
+        if (!isAllowed) {
             throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         }
 
-        const name:string = body.name
-        const description:string = body.description
-        const title:string = body.title
+        const name: string = body.name
+        const description: string = body.description
+        const title: string = body.title
         const imgBuffer = await fs.readFileSync("files/" + file.filename)
         const channel = await this.channelManagementService.create(name, title, description, imgBuffer, file.filename)
-        await fs.unlink("files/" + file.filename, (err)=>{
+        await fs.unlink("files/" + file.filename, (err) => {
             if (err) console.log(err)
         })
-        return of({imagePath:file.path})
+        return of({imagePath: file.path})
 
     }
 
     @Put("/editImage")
     @UseInterceptors(FileInterceptor('image', {
-        storage:diskStorage({
-            destination:"./files",
-            filename:(req,file,cb)=>{
+        storage: diskStorage({
+            destination: "./files",
+            filename: (req, file, cb) => {
                 // console.log(path.parse(file.originalname))
-                const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") +  uuidv4()
-                const extension:string = path.parse(file.originalname).ext
+                const filename: string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4()
+                const extension: string = path.parse(file.originalname).ext
 
-                cb(null,`${filename}${extension}`)
+                cb(null, `${filename}${extension}`)
             }
         })
     }))
-    public async editImage(@Body() body, @Req() req, @UploadedFile() file:Express.Multer.File) {
+    public async editImage(@Body() body, @Req() req, @UploadedFile() file: Express.Multer.File) {
         const adminAuth = req.user
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Update, Channel)
-        if(!isAllowed) {
+        if (!isAllowed) {
             throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         }
         const id = body.id
         const imgData = await fs.readFileSync("files/" + file.filename)
         await this.channelManagementService.editImage(id, imgData, file.filename)
-        await fs.unlink("files/" + file.filename, (err)=>{
+        await fs.unlink("files/" + file.filename, (err) => {
             if (err) console.log(err)
         })
         return "image successfully edited"
@@ -123,18 +125,19 @@ export class ChannelManagementController {
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Delete, Channel)
 
-        if(!isAllowed) {
+        if (!isAllowed) {
             throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         }
 
         const id = param.id
         const channel = await this.channelManagementService.findChannelById(id)
-        await fs.unlink("files/" + channel.imgName, (err)=>{
+        await fs.unlink("files/" + channel.imgName, (err) => {
             if (err) console.log(err)
         })
         const deletedChannel = await this.channelManagementService.delete(id)
         return deletedChannel
     }
+
     @Put("/update")
     public async update(@Body() body, @Req() req) {
 
@@ -142,7 +145,7 @@ export class ChannelManagementController {
         const admin = await this.adminService.getAdmin(adminAuth.login)
         const ability = this.abilityFactory.defineAbility(admin)
         const isAllowed = ability.can(Action.Update, Channel)
-        if(!isAllowed) {
+        if (!isAllowed) {
             throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         }
 
@@ -164,8 +167,8 @@ export class ChannelManagementController {
         //     throw new HttpException("Недостаточно прав", HttpStatus.FORBIDDEN)
         // }
         const pageId = reqParam.pageId
-        const pageSize:number = reqParam.pageSize
-        const page = await this.channelManagementService.getPage(pageId,pageSize)
+        const pageSize: number = reqParam.pageSize
+        const page = await this.channelManagementService.getPage(pageId, pageSize)
         const length = await this.channelManagementService.getLength()
         return {page, length}
     }
@@ -173,28 +176,50 @@ export class ChannelManagementController {
     @Post("/getImage")
     public async getImage(@Res() res, @Body() body) {
         const imgpath = body.imgpath
-        return res.sendFile(imgpath, {root:'files'})
+        return res.sendFile(imgpath, {root: 'files'})
     }
 
     @Get("/getChannel/:id")
     public async getChannel(@Param() param) {
-        const channel = await this.channelManagementService.findChannelById(param.id)
-        return channel
+        return await this.channelManagementService.findChannelById(param.id)
     }
 
-    @Put("/favourite")
-    public async addFavourite(@Req() req, @Body() body: AddFavouriteChannelRequestDTO) {
+    @Put("/addFavouriteChannel")
+    public async addFavouriteChannel(@Req() req, @Body() body: AddFavouriteChannelRequestDTO) {
+        const user = req.user;
 
-        const user = req.user
-        await this.channelManagementService.addFavouriteChannel(user.id, body.channelId)
-        return null
+        console.log(body)
+        await this.channelManagementService.addFavouriteChannel(user.id, {
+            name: body.name,
+            id: body.id,
+            logoName: body.logoName,
+            url: body.url
+        });
+
+        const channels = await this.channelManagementService.getAllFavouriteChannels(user.id);
+
+        return {favouriteChannels: channels};
     }
 
-    @Get("/favourite/all")
-    public async getAllFavourites(@Req() req) {
-        const user = req.user
-        const channelIds = await this.channelManagementService.getAllFavourites(user.id)
-        return {favourites: channelIds}
+    @Delete("/deleteFavouriteChannel/:id")
+    public async deleteFavouriteChannel(@Req() req, @Param() param) {
+        const user = req.user;
+
+
+        await this.channelManagementService.deleteFavouriteChannel(user.id, param.id)
+
+        const channels = await this.channelManagementService.getAllFavouriteChannels(user.id);
+
+        return {favouriteChannels: channels};
+    }
+
+
+    @Get("/favouriteChannels/all")
+    public async favouriteChannels(@Req() req) {
+        const user = req.user;
+        const channels = await this.channelManagementService.getAllFavouriteChannels(user.id);
+
+        return {favouriteChannels: channels};
     }
 
     @Get("/test")
@@ -242,15 +267,15 @@ export class ChannelManagementController {
         // const data = await this.channelManagementService.getImage(query.imgName, query.channelId);
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
-        const token:string = tokenRes.data.js.token;
-        const random:string = tokenRes.data.js.random;
+        const token: string = tokenRes.data.js.token;
+        const random: string = tokenRes.data.js.random;
 
         const responseImage = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/misc/logos/${query.channelId}/${query.imgName}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Cookie': `mac=00:1A:79:51:AB:E0; mac_emu=1; debug=1; debug_key=${process.env.MINISTRA_DEBUG_KEY}`
             },
-            responseType:"arraybuffer"
+            responseType: "arraybuffer"
         })
         response.setHeader('Content-Type', 'image/gif');
         response.send(responseImage.data)
@@ -259,7 +284,7 @@ export class ChannelManagementController {
     @Get("/getSchedule:id")
     public async getSchedule(@Param() par, @Req() req) {
         console.log("aboba")
-        const { date } = req.query;
+        const {date} = req.query;
         const channelId = par.id;
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
@@ -295,13 +320,12 @@ export class ChannelManagementController {
     }
 
 
-
     @Get("/timecode")
     public async timecode(@Req() req) {
         const tokenRes = await axios.get(`http://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`);
 
-        const token:string = tokenRes.data.js.token;
-        const random:string = tokenRes.data.js.random;
+        const token: string = tokenRes.data.js.token;
+        const random: string = tokenRes.data.js.random;
         const {archiveId} = req.query
         const response = await axios.get(`https://${process.env.MINISTRA_PORTAL}/stalker_portal/server/load.php?type=tv_archive&action=create_link&cmd=auto%20/media/${archiveId}.mpg&series=&forced_storage=&disable_ad=0&download=0&force_ch_link_check=0&JsHttpRequest=1-xml`, {
             headers: {

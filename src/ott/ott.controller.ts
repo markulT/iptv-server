@@ -1,4 +1,4 @@
-import {Controller, Get, Param, Query, Req, Res} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Put, Query, Req, Res} from '@nestjs/common';
 import {OttService} from "./ott.service";
 import axios from 'axios'
 import {InjectModel} from "@nestjs/mongoose";
@@ -7,6 +7,25 @@ import {User, UserDocument} from "../users/user.schema";
 import {ConfigService} from "@nestjs/config";
 import * as qs from 'querystring'
 
+
+export class AddFavouriteMovieRequestDTO {
+    id: string;
+    name: string;
+    description: string;
+    time: string;
+    url: string;
+    director: string;
+    actors: string;
+    year: string;
+    age: string;
+    rating: string;
+    genres: string[];
+    country: string;
+    imageCategory: string;
+    imgName: string;
+    series: string[];
+    category: string;
+}
 
 function bin2hex(s){	// Convert binary data into hexadecimal representation
     //
@@ -95,6 +114,51 @@ export class OttController {
 
         return mergedData.flat();
 
+    }
+
+    @Put("/addFavouriteMovie")
+    public async addFavouriteChannel(@Req() req, @Body() body: AddFavouriteMovieRequestDTO) {
+        const user = req.user;
+
+        console.log(body)
+        await this.ottService.addFavouriteMovie(user.id, {
+            id: body.id,
+            name: body.name,
+            description: body.description,
+            time: body.time,
+            url: body.url,
+            director: body.director,
+            actors: body.actors,
+            year: body.year,
+            age: body.age,
+            rating: body.rating,
+            genres: body.genres,
+            country: body.country,
+            imageCategory: body.imageCategory,
+            imgName: body.imgName,
+            series: body.series,
+            category: body.category,
+        });
+
+        return null;
+    }
+
+    @Delete("/deleteFavouriteMovie/:id")
+    public async deleteFavouriteChannel(@Req() req, @Param() param) {
+        const user = req.user;
+
+
+        await this.ottService.deleteFavouriteMovie(user.id, param.id)
+
+        return null;
+    }
+
+    @Get("/favouriteMovies/all/")
+    public async favouriteChannels(@Req() req) {
+        const user = req.user;
+        const movies = await this.ottService.getAllFavouriteMovies(user.id);
+
+        return {favouriteMovies: movies};
     }
 
     @Get("moviesByGenre/:id")

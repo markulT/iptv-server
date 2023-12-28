@@ -69,7 +69,10 @@ export class User {
     tvAuthCode:string
 
     @Prop()
-    favouriteList:string[]
+    favouriteChannelsList:string[]
+
+    @Prop()
+    favouriteMoviesList:string[]
 
 }
 
